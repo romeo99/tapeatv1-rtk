@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes scan {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-scan {
+  animation: scan 2s linear infinite;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Add margin for safe area at top */
+.mt-safe {
+  margin-top: env(safe-area-inset-top, 1rem);
+}
+
+/* Add padding for safe area at top */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 1rem);
+}
+
+/* Add top position for safe area */
+.top-safe {
+  top: env(safe-area-inset-top, 1rem);
+}
+
+/* Add margin for safe area at bottom */
+.mb-safe {
+  margin-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Add extra padding for mobile browser search bar */
+.pb-safe-with-nav {
+  padding-bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 5rem);
+}
+
+/* Add extra padding for content areas */
+.content-safe-area {
+  padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 7rem);
+}
+
+/* Adjust fixed bottom navigation */
+.fixed-bottom-nav {
+  bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Add extra padding for mobile browser search bar */
+.pb-safe-with-nav {
+  padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 5rem);
+}
+
+/* Add margin for safe area at bottom */
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+/* Add extra padding for mobile browser search bar */
+.pb-safe-with-nav {
+  padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 6rem);
+}
+
+/* Add extra padding for content areas */
+.content-safe-area {
+  padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 7rem);
+}
+
+/* Adjust fixed bottom navigation */
+.fixed-bottom-nav {
+  bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Add extra padding for mobile browser search bar */
+.pb-safe-with-nav {
+  padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 5rem);
+}
+
+/* Hide scrollbar */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Screen orientation styles */
+/* Only apply portrait lock on mobile devices */
+@media screen and (orientation: landscape) and (max-width: 1024px) {
+  /* Lock portrait mode for user pages on mobile */
+  body:not(.admin-page):not(.driver-page):not(.superadmin-page):not(.desktop) {
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    width: 100vh;
+    height: 100vw;
+    overflow-x: hidden;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+}
+
+/* Desktop styles - no rotation */
+@media screen and (min-width: 1025px) {
+  body {
+    transform: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes addToCart {
+  0% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, 50vh) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, 100vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes cartShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
