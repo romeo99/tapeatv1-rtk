@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { ChevronLeft, Loader2, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Upload, Loader2, X } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { createCategory, updateCategory } from '../../services/categoryService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { createCategory, updateCategory } from '../../services/categoryService';
 
 const ICONS = ['🍔', '🍕', '🥗', '🍰', '🥤', '🍟', '🍖', '🥩', '🍗', '🥪', '🌮', '🍣'];
 
@@ -17,7 +18,9 @@ export default function CategoryForm() {
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  
+
+  useOrderNotification();
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -27,11 +30,11 @@ export default function CategoryForm() {
   useEffect(() => {
     const loadCategory = async () => {
       if (!id || !categories) return;
-      
+
       try {
         setInitialLoading(true);
         const category = categories.find(c => c.id === id);
-        
+
         if (category) {
           setFormData({
             name: category.name,
@@ -68,7 +71,7 @@ export default function CategoryForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurant?.id) return;
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -170,7 +173,7 @@ export default function CategoryForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Image ou icône
                 </label>
-                
+
                 {/* Upload d'image */}
                 <div className="mb-4">
                   {imagePreview ? (
@@ -221,11 +224,10 @@ export default function CategoryForm() {
                           key={icon}
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, icon }))}
-                          className={`p-3 text-2xl rounded-lg ${
-                            formData.icon === icon
-                              ? 'bg-emerald-50 border-2 border-emerald-500'
-                              : 'bg-gray-50 border border-gray-200 hover:border-emerald-500'
-                          }`}
+                          className={`p-3 text-2xl rounded-lg ${formData.icon === icon
+                            ? 'bg-emerald-50 border-2 border-emerald-500'
+                            : 'bg-gray-50 border border-gray-200 hover:border-emerald-500'
+                            }`}
                         >
                           {icon}
                         </button>

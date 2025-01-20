@@ -66,6 +66,8 @@ export async function getNearbyRestaurants(lat: number, lng: number, radius: num
     
     // Filter out null values (restaurants without location) and sort by distance
     const validRestaurants = restaurants.filter((r): r is NonNullable<typeof r> => r !== null);
+
+    console.log(validRestaurants);
     
     console.log(`Found ${validRestaurants.length} restaurants with valid coordinates out of ${restaurants.length} total`);
 

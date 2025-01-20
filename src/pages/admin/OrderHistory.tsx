@@ -1,11 +1,12 @@
+import { Bike, CheckCircle, CreditCard, Filter, Search, ShoppingBag, UtensilsCrossed, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { Search, Filter, Calendar, CreditCard, UtensilsCrossed, ShoppingBag, Bike, CheckCircle, XCircle } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { useOrderHistory } from '../../hooks/useOrderHistory';
-import { useOrderFilters } from '../../hooks/useOrderFilters';
 import OrderHistoryItem from '../../components/admin/OrderHistoryItem';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import { useOrderFilters } from '../../hooks/useOrderFilters';
+import { useOrderHistory } from '../../hooks/useOrderHistory';
+import useOrderNotification from '../../hooks/useOrderNotification';
 
 const STATUS_COLORS = {
   completed: 'bg-green-100 text-green-800',
@@ -17,6 +18,8 @@ export default function OrderHistory() {
   const { orders, loading, error } = useOrderHistory(restaurant?.id || '');
   const { filters, setters, filteredOrders } = useOrderFilters(orders);
   const [showFilters, setShowFilters] = useState(false);
+
+  useOrderNotification();
 
   if (loading) {
     return (
@@ -116,11 +119,10 @@ export default function OrderHistory() {
                         onClick={() => setters.setSelectedPaymentMethod(
                           filters.selectedPaymentMethod === method.id ? null : method.id
                         )}
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
-                          filters.selectedPaymentMethod === method.id
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${filters.selectedPaymentMethod === method.id
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         <Icon className="h-4 w-4 mr-1" />
                         {method.name}
@@ -147,11 +149,10 @@ export default function OrderHistory() {
                         onClick={() => setters.setSelectedOrderType(
                           filters.selectedOrderType === type.id ? null : type.id
                         )}
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
-                          filters.selectedOrderType === type.id
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${filters.selectedOrderType === type.id
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         <Icon className="h-4 w-4 mr-1" />
                         {type.name}
@@ -177,11 +178,10 @@ export default function OrderHistory() {
                         onClick={() => setters.setSelectedStatus(
                           filters.selectedStatus === status.id ? null : status.id
                         )}
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
-                          filters.selectedStatus === status.id
-                            ? STATUS_COLORS[status.id as keyof typeof STATUS_COLORS]
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${filters.selectedStatus === status.id
+                          ? STATUS_COLORS[status.id as keyof typeof STATUS_COLORS]
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         <Icon className="h-4 w-4 mr-1" />
                         {status.name}

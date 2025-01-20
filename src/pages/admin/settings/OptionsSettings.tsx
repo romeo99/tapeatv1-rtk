@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { AlertCircle, ChevronLeft, Loader2, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Save, Loader2, AlertCircle } from 'lucide-react';
-import { useRestaurantContext } from '../../../context/RestaurantContext';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../../context/RestaurantContext';
+import useOrderNotification from '../../../hooks/useOrderNotification';
 import { updateRestaurant } from '../../../services/restaurantService';
 
 const PAYMENT_METHODS = [
@@ -32,6 +33,8 @@ export default function OptionsSettings() {
     deliveryFee: 0,
     driverFee: 0
   });
+
+  useOrderNotification();
 
   useEffect(() => {
     if (restaurant) {
@@ -127,27 +130,26 @@ export default function OptionsSettings() {
 
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {PAYMENT_METHODS.map((method) => (
-                <label key={method.id} className={`flex flex-col items-center justify-center p-6 rounded-xl cursor-pointer transition-all ${
-                  formData.paymentMethods.includes(method.id)
+                {PAYMENT_METHODS.map((method) => (
+                  <label key={method.id} className={`flex flex-col items-center justify-center p-6 rounded-xl cursor-pointer transition-all ${formData.paymentMethods.includes(method.id)
                     ? 'bg-emerald-50 border-2 border-emerald-500 shadow-md transform scale-[1.02]'
                     : 'bg-white border-2 border-gray-100 hover:border-emerald-500 hover:shadow-md hover:scale-[1.02]'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={formData.paymentMethods.includes(method.id)}
-                    onChange={(e) => {
-                      const methods = e.target.checked
-                        ? [...formData.paymentMethods, method.id]
-                        : formData.paymentMethods.filter(m => m !== method.id);
-                      setFormData(prev => ({ ...prev, paymentMethods: methods }));
-                    }}
-                    className="sr-only"
-                  />
-                  <span className="text-4xl mb-4">{method.icon}</span>
-                  <span className="text-base font-medium text-center">{method.name}</span>
-                </label>
-              ))}
+                    }`}>
+                    <input
+                      type="checkbox"
+                      checked={formData.paymentMethods.includes(method.id)}
+                      onChange={(e) => {
+                        const methods = e.target.checked
+                          ? [...formData.paymentMethods, method.id]
+                          : formData.paymentMethods.filter(m => m !== method.id);
+                        setFormData(prev => ({ ...prev, paymentMethods: methods }));
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="text-4xl mb-4">{method.icon}</span>
+                    <span className="text-base font-medium text-center">{method.name}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
@@ -161,27 +163,26 @@ export default function OptionsSettings() {
 
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {SERVICE_OPTIONS.map((option) => (
-                <label key={option.id} className={`flex flex-col items-center justify-center p-6 rounded-xl cursor-pointer transition-all ${
-                  formData.serviceOptions.includes(option.id)
+                {SERVICE_OPTIONS.map((option) => (
+                  <label key={option.id} className={`flex flex-col items-center justify-center p-6 rounded-xl cursor-pointer transition-all ${formData.serviceOptions.includes(option.id)
                     ? 'bg-emerald-50 border-2 border-emerald-500 shadow-md transform scale-[1.02]'
                     : 'bg-white border-2 border-gray-100 hover:border-emerald-500 hover:shadow-md hover:scale-[1.02]'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={formData.serviceOptions.includes(option.id)}
-                    onChange={(e) => {
-                      const options = e.target.checked
-                        ? [...formData.serviceOptions, option.id]
-                        : formData.serviceOptions.filter(o => o !== option.id);
-                      setFormData(prev => ({ ...prev, serviceOptions: options }));
-                    }}
-                    className="sr-only"
-                  />
-                  <span className="text-4xl mb-4">{option.icon}</span>
-                  <span className="text-base font-medium text-center">{option.name}</span>
-                </label>
-              ))}
+                    }`}>
+                    <input
+                      type="checkbox"
+                      checked={formData.serviceOptions.includes(option.id)}
+                      onChange={(e) => {
+                        const options = e.target.checked
+                          ? [...formData.serviceOptions, option.id]
+                          : formData.serviceOptions.filter(o => o !== option.id);
+                        setFormData(prev => ({ ...prev, serviceOptions: options }));
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="text-4xl mb-4">{option.icon}</span>
+                    <span className="text-base font-medium text-center">{option.name}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
@@ -203,8 +204,8 @@ export default function OptionsSettings() {
                   min="0"
                   step="0.01"
                   value={formData.deliveryFee}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     deliveryFee: parseFloat(e.target.value) || 0
                   }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg"
@@ -223,8 +224,8 @@ export default function OptionsSettings() {
                   min="0"
                   step="0.01"
                   value={formData.driverFee}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     driverFee: parseFloat(e.target.value) || 0
                   }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg"
@@ -253,8 +254,8 @@ export default function OptionsSettings() {
                   min="0"
                   step="0.01"
                   value={formData.minimumOrder}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     minimumOrder: parseFloat(e.target.value) || 0
                   }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg"
@@ -269,8 +270,8 @@ export default function OptionsSettings() {
                   type="number"
                   min="0"
                   value={formData.averagePreparationTime}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     averagePreparationTime: parseInt(e.target.value) || 0
                   }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg"
@@ -285,8 +286,8 @@ export default function OptionsSettings() {
                   type="number"
                   min="0"
                   value={formData.tableCount}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     tableCount: parseInt(e.target.value) || 0
                   }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg"

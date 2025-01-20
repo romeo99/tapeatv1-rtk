@@ -1,12 +1,16 @@
-import { useState, useMemo } from 'react';
-import { Search, Plus, Filter, ArrowUpDown, Package, DollarSign, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, DollarSign, Package, Plus, Search } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import useSound from 'use-sound';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { useInventory } from '../../hooks/useInventory';
 import InventoryCard from '../../components/admin/inventory/InventoryCard';
 import InventoryModal from '../../components/admin/inventory/InventoryModal';
-import { formatCurrency } from '../../utils/formatters';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { notificationSoundUrl, useNotification } from '../../context/NotificationContext';
+import { useOrderContext } from '../../context/OrderContext';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import { useInventory } from '../../hooks/useInventory';
+import { formatCurrency } from '../../utils/formatters';
+import useOrderNotification from '../../hooks/useOrderNotification';
 
 const CATEGORIES = [
   'Viandes',
@@ -26,10 +30,12 @@ export default function InventoryManagement() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
 
+  useOrderNotification();
+
   const handleSave = async (itemData: any, imageFile?: File) => {
     try {
       if (!restaurant?.id) throw new Error('Restaurant ID is required');
-      
+
       const data = {
         ...itemData,
         restaurantId: restaurant.id,
@@ -38,7 +44,7 @@ export default function InventoryManagement() {
         price: Number(itemData.price) || 0,
         lastUpdated: new Date()
       };
-      
+
       if (selectedItem) {
         await updateItem(selectedItem.id, data, imageFile);
       } else {
@@ -75,7 +81,7 @@ export default function InventoryManagement() {
 
   const filteredInventory = useMemo(() => {
     return inventory
-      .filter(item => 
+      .filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
         (!selectedCategory || item.category === selectedCategory)
       )
@@ -128,7 +134,7 @@ export default function InventoryManagement() {
         {/* En-tête et résumé */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Gestion des stocks</h1>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-emerald-50 rounded-lg p-4">
               <div className="flex items-center gap-3">
@@ -189,7 +195,7 @@ export default function InventoryManagement() {
               </select>
 
               <button
-                onClick={() => setSortBy(prev => 
+                onClick={() => setSortBy(prev =>
                   prev === 'name' ? 'stock' : prev === 'stock' ? 'category' : 'name'
                 )}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -197,8 +203,8 @@ export default function InventoryManagement() {
                 <ArrowUpDown className="h-4 w-4" />
                 <span className="hidden sm:inline">Trier par</span>
                 <span className="text-emerald-600">
-                  {sortBy === 'name' ? 'Nom' : 
-                   sortBy === 'stock' ? 'Niveau de stock' : 'Catégorie'}
+                  {sortBy === 'name' ? 'Nom' :
+                    sortBy === 'stock' ? 'Niveau de stock' : 'Catégorie'}
                 </span>
               </button>
 
@@ -230,12 +236,12 @@ export default function InventoryManagement() {
               onStockAdjust={(newQuantity) => handleStockAdjustment(item.id, newQuantity)}
             />
           ))}
-          
+
           {!loading && filteredInventory.length === 0 && (
             <div className="col-span-full text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">
-                {searchQuery || selectedCategory 
+                {searchQuery || selectedCategory
                   ? 'Aucun produit ne correspond à votre recherche'
                   : 'Aucun produit dans l\'inventaire'}
               </p>
@@ -248,7 +254,7 @@ export default function InventoryManagement() {
                 type="button"
               >
                 <Plus className="h-4 w-4" />
-                {searchQuery || selectedCategory 
+                {searchQuery || selectedCategory
                   ? 'Ajouter un produit'
                   : 'Ajouter un premier produit'}
               </button>
@@ -256,16 +262,16 @@ export default function InventoryManagement() {
           )}
         </div>
 
-      {/* Modal */}
-      {showModal && restaurant?.id && (
-        <InventoryModal
-          item={selectedItem}
-          onClose={() => setShowModal(false)}
-          onSubmit={handleSave}
-          onDelete={selectedItem ? () => handleDelete(selectedItem.id) : undefined}
-          categories={CATEGORIES}
-        />
-      )}
+        {/* Modal */}
+        {showModal && restaurant?.id && (
+          <InventoryModal
+            item={selectedItem}
+            onClose={() => setShowModal(false)}
+            onSubmit={handleSave}
+            onDelete={selectedItem ? () => handleDelete(selectedItem.id) : undefined}
+            categories={CATEGORIES}
+          />
+        )}
       </div>
     </AdminLayout>
   );

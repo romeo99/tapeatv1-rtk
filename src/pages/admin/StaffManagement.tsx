@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import StaffForm from '../../components/admin/StaffForm';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { createStaffMember, getStaffMembers, deleteStaffMember } from '../../services/staffService';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { createStaffMember, deleteStaffMember, getStaffMembers } from '../../services/staffService';
 
 export default function StaffManagement() {
   const { restaurant } = useRestaurantContext();
@@ -13,6 +14,8 @@ export default function StaffManagement() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useOrderNotification();
 
   useEffect(() => {
     if (!restaurant?.id) return;
@@ -35,12 +38,12 @@ export default function StaffManagement() {
   const handleSubmit = async (data: any) => {
     try {
       if (!restaurant?.id) return;
-      
+
       const result = await createStaffMember(restaurant.id, data);
-      
+
       // Show credentials modal or print them
       alert(`Compte créé avec succès!\n\nEmail: ${result.email}\nMot de passe temporaire: ${result.password}\n\nUn email de réinitialisation a été envoyé.`);
-      
+
       await loadStaff();
     } catch (err) {
       console.error('Error creating staff member:', err);
@@ -156,11 +159,10 @@ export default function StaffManagement() {
                     <div className="text-sm text-gray-900">{member.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      member.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.status === 'active'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {member.status === 'active' ? 'Actif' : 'Inactif'}
                     </span>
                   </td>

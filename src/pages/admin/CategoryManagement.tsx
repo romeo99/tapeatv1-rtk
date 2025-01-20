@@ -1,12 +1,13 @@
+import { DragDropContext, DropResult } from '@hello-pangea/dnd';
+import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
-import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { deleteCategory, updateCategoriesOrder } from '../../services/categoryService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AdminLayout from '../../components/admin/AdminLayout';
 import CategoryList from '../../components/admin/CategoryList';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { deleteCategory, updateCategoriesOrder } from '../../services/categoryService';
 
 export default function CategoryManagement() {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ export default function CategoryManagement() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [reordering, setReordering] = useState(false);
+
+  useOrderNotification();
 
   const handleDeleteCategory = async (categoryId: string) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
@@ -32,24 +35,24 @@ export default function CategoryManagement() {
     if (!result.destination) return;
 
     const { source, destination, type } = result;
-    
+
     if (source.index === destination.index) return;
 
     try {
       setReordering(true);
-      
+
       if (type === 'category') {
         // Reorder categories
         const reorderedCategories = Array.from(categories);
         const [removed] = reorderedCategories.splice(source.index, 1);
         reorderedCategories.splice(destination.index, 0, removed);
-        
+
         // Update order field for each category
         const updates = reorderedCategories.map((category, index) => ({
           id: category.id,
           order: index
         }));
-        
+
         await updateCategoriesOrder(restaurant.id, updates);
       }
     } catch (err) {

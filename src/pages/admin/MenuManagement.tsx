@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { Edit2, Filter, Plus, Search, Tag, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Tag, Edit2, Trash2 } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { deleteMenuItem, updateMenuItem } from '../../services/menuService';
+import useSound from 'use-sound';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AdminLayout from '../../components/admin/AdminLayout';
-import MenuItemCard from '../../components/admin/MenuItemCard';
+import { notificationSoundUrl, useNotification } from '../../context/NotificationContext';
+import { useOrderContext } from '../../context/OrderContext';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import { deleteMenuItem, updateMenuItem } from '../../services/menuService';
+import useOrderNotification from '../../hooks/useOrderNotification';
 
 const VIEWS = {
   PRODUCTS: 'products',
@@ -22,6 +25,8 @@ export default function MenuManagement() {
   const [showFilters, setShowFilters] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
+  useOrderNotification();
 
   const handleDelete = async (itemId: string) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
@@ -80,10 +85,10 @@ export default function MenuManagement() {
 
   const filteredMenu = menu.filter(item => {
     const matchesCategory = !selectedCategory || item.categoryId === selectedCategory;
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTags = selectedTags.length === 0 || 
+    const matchesTags = selectedTags.length === 0 ||
       selectedTags.every(tag => item.tags?.includes(tag));
     const matchesType = currentView === 'COMBOS' ? item.isCombo : !item.isCombo;
     return matchesCategory && matchesSearch && matchesTags && matchesType;
@@ -99,21 +104,19 @@ export default function MenuManagement() {
               <div className="mt-1 flex items-center gap-4">
                 <button
                   onClick={() => setCurrentView('PRODUCTS')}
-                  className={`text-sm font-medium ${
-                    currentView === 'PRODUCTS'
-                      ? 'text-emerald-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`text-sm font-medium ${currentView === 'PRODUCTS'
+                    ? 'text-emerald-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   Produits
                 </button>
                 <button
                   onClick={() => setCurrentView('COMBOS')}
-                  className={`text-sm font-medium ${
-                    currentView === 'COMBOS'
-                      ? 'text-emerald-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`text-sm font-medium ${currentView === 'COMBOS'
+                    ? 'text-emerald-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   Menus & Combos
                 </button>
@@ -201,11 +204,10 @@ export default function MenuManagement() {
                               : [...prev, tag]
                           );
                         }}
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
-                          selectedTags.includes(tag)
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${selectedTags.includes(tag)
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         <Tag className="h-3 w-3 mr-1" />
                         {tag}

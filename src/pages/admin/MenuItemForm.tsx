@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { ChevronLeft, Loader2, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Upload, Loader2, X } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { createMenuItem, updateMenuItem } from '../../services/menuService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import IngredientsSelector from '../../components/IngredientsSelector';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { createMenuItem, updateMenuItem } from '../../services/menuService';
 
 export default function MenuItemForm() {
   const navigate = useNavigate();
@@ -14,7 +15,9 @@ export default function MenuItemForm() {
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  
+
+  useOrderNotification();
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',

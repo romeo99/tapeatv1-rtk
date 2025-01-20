@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
 import {
+  addDoc,
   collection,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
   doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
   updateDoc
 } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { db } from '../config/firebase';
-import type { Order } from '../types/firebase';
 import { deductInventoryFromOrder } from '../services/inventoryService';
+import type { Order } from '../types/firebase';
 
 export function useOrders(restaurantId: string) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -38,7 +39,7 @@ export function useOrders(restaurantId: string) {
             createdAt: doc.data().createdAt?.toDate() || new Date(),
             updatedAt: doc.data().updatedAt?.toDate() || new Date()
           })) as Order[];
-          
+
           setOrders(ordersData);
           setLoading(false);
         },
@@ -76,7 +77,7 @@ export function useOrders(restaurantId: string) {
   };
 
   const updateOrderStatus = async (
-    orderId: string, 
+    orderId: string,
     status: Order['status'],
     additionalData?: {
       paymentStatus?: 'pending' | 'paid';

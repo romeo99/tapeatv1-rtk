@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { AlertCircle, ChevronLeft, Copy, Download, Loader2, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, QrCode, Plus, Download, Copy, Trash2, Loader2, AlertCircle } from 'lucide-react';
-import { useRestaurantContext } from '../../../context/RestaurantContext';
-import { generateQRCode, deleteQRCode, downloadQRCode, getQRCodes } from '../../../services/qrCodeService';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../../context/RestaurantContext';
+import useOrderNotification from '../../../hooks/useOrderNotification';
+import { deleteQRCode, downloadQRCode, generateQRCode, getQRCodes, QRCodeData } from '../../../services/qrCodeService';
 
 export default function QrCodeSettings() {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ export default function QrCodeSettings() {
   });
   const [generating, setGenerating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  useOrderNotification();
 
   useEffect(() => {
     if (!restaurant?.id) return;
@@ -44,7 +47,7 @@ export default function QrCodeSettings() {
       setActionError('Restaurant ID manquant');
       return;
     }
-    
+
     if (!formData.label.trim()) {
       setActionError('Le nom du QR code est requis');
       return;

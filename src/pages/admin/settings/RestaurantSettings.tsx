@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useLoadScript } from '@react-google-maps/api';
+import { ChevronLeft, Loader2, MapPin, Save, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Save, Loader2, Upload, X, MapPin } from 'lucide-react';
-import { useRestaurantContext } from '../../../context/RestaurantContext';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../../context/RestaurantContext';
+import useOrderNotification from '../../../hooks/useOrderNotification';
 import { updateRestaurant, uploadRestaurantImage } from '../../../services/restaurantService';
-import { useLoadScript } from '@react-google-maps/api';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
 
@@ -35,6 +36,8 @@ export default function RestaurantSettings() {
     instagramUrl: '',
     googleUrl: ''
   });
+
+  useOrderNotification();
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -112,13 +115,13 @@ export default function RestaurantSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurant) return;
-    
+
     // Validate address has coordinates
     if (!formData.location?.lat || !formData.location?.lng) {
       setAddressError('Veuillez sélectionner une adresse valide dans la liste des suggestions');
       return;
     }
-    
+
     try {
       setSaving(true);
       setError(null);
@@ -133,7 +136,7 @@ export default function RestaurantSettings() {
       if (coverFile) {
         coverUrl = await uploadRestaurantImage(restaurant.id, coverFile, 'cover');
       }
-      
+
       await updateRestaurant(restaurant.id, {
         ...formData,
         logo: logoUrl,
@@ -343,9 +346,8 @@ export default function RestaurantSettings() {
                     ref={addressInputRef}
                     type="text"
                     defaultValue={formData.address}
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                      addressError ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${addressError ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Entrez l'adresse du restaurant"
                     required
                   />
@@ -398,7 +400,7 @@ export default function RestaurantSettings() {
                       {day.name}
                     </span>
                   </div>
-                  
+
                   <label className="flex items-center">
                     <input
                       type="checkbox"

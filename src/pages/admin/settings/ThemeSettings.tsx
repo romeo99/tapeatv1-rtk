@@ -1,9 +1,10 @@
+import { ChevronLeft, Loader2, Palette, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Save, Loader2, Palette } from 'lucide-react';
-import { useRestaurantContext } from '../../../context/RestaurantContext';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../../context/RestaurantContext';
+import useOrderNotification from '../../../hooks/useOrderNotification';
 import { updateRestaurant } from '../../../services/restaurantService';
 
 const DEFAULT_COLORS = [
@@ -25,6 +26,8 @@ export default function ThemeSettings() {
     restaurant?.theme?.primaryColor || '#10B981'
   );
   const [customColor, setCustomColor] = useState('');
+
+  useOrderNotification();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,11 +109,10 @@ export default function ThemeSettings() {
                       key={color}
                       type="button"
                       onClick={() => setPrimaryColor(color)}
-                      className={`w-10 h-10 rounded-full border-2 ${
-                        primaryColor === color
-                          ? 'border-gray-900 scale-110'
-                          : 'border-transparent hover:border-gray-200'
-                      } transition-all`}
+                      className={`w-10 h-10 rounded-full border-2 ${primaryColor === color
+                        ? 'border-gray-900 scale-110'
+                        : 'border-transparent hover:border-gray-200'
+                        } transition-all`}
                       style={{ backgroundColor: color }}
                     />
                   ))}

@@ -1,24 +1,26 @@
-import { 
+import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  updateProfile,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
-import { 
+import {
   collection,
-  query,
-  where,
-  getDocs,
-  doc, 
-  setDoc, 
+  collectionGroup,
+  doc,
   getDoc,
+  getDocs,
+  query,
   serverTimestamp,
-  writeBatch,
-  collectionGroup
+  setDoc,
+  updateDoc,
+  where,
+  writeBatch
 } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { getCoordsFromAddress } from './locationService';
+import { generateImpersonationToken } from './superadminService';
 
 interface RegisterData {
   email: string;
@@ -166,11 +168,11 @@ export async function registerRestaurant(data: RegisterRestaurantData) {
     }
   } catch (error: any) {
     console.error('Error registering restaurant:', error);
-    
+
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Cette adresse email est déjà utilisée');
     }
-    
+
     if (error.code === 'auth/invalid-email') {
       throw new Error('Format d\'email invalide');
     }
@@ -178,7 +180,7 @@ export async function registerRestaurant(data: RegisterRestaurantData) {
     if (error.code === 'auth/weak-password') {
       throw new Error('Le mot de passe est trop faible');
     }
-    
+
     if (error.code === 'auth/network-request-failed') {
       throw new Error('Erreur de connexion. Veuillez vérifier votre connexion internet.');
     }
@@ -191,22 +193,22 @@ export async function registerRestaurant(data: RegisterRestaurantData) {
 function generateSearchTerms(name: string): string[] {
   const terms = [];
   const text = name.toLowerCase();
-  
+
   // Add full text
   terms.push(text);
-  
+
   // Add each word
   text.split(/\s+/).forEach(word => {
     if (word.length > 1) {
       terms.push(word);
     }
   });
-  
+
   // Add partial matches (minimum 2 characters)
   for (let i = 0; i < text.length - 1; i++) {
     terms.push(text.slice(0, i + 2));
   }
-  
+
   return [...new Set(terms)];
 }
 
@@ -238,11 +240,11 @@ export async function registerUser(data: RegisterData) {
     return user;
   } catch (error: any) {
     console.error('Error registering user:', error);
-    
+
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Cette adresse email est déjà utilisée');
     }
-    
+
     throw new Error('Une erreur est survenue lors de l\'inscription');
   }
 }
@@ -254,8 +256,8 @@ export async function signIn(email: string, password: string) {
     }
 
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
-    
+
+
     const user = userCredential.user;
 
     // Store auth data in localStorage
@@ -274,7 +276,7 @@ export async function signIn(email: string, password: string) {
     const restaurantDoc = await getDoc(doc(db, 'restaurants', user.uid));
     if (restaurantDoc.exists()) {
       // Store role and restaurant ID in localStorage
-      localStorage.setItem('userRole', 'owner'); 
+      localStorage.setItem('userRole', 'owner');
       localStorage.setItem('restaurantId', user.uid);
       localStorage.setItem('authUser', JSON.stringify({
         uid: user.uid,
@@ -301,7 +303,7 @@ export async function signIn(email: string, password: string) {
       where('uid', '==', user.uid)
     );
     const staffSnapshot = await getDocs(staffQuery);
-    if (!staffSnapshot.empty) {
+    if (!staffSnapshot.empty) { // Staff user
       // Store role and restaurant ID in localStorage
       localStorage.setItem('userRole', 'staff');
       const staffDoc = staffSnapshot.docs[0];
@@ -320,7 +322,7 @@ export async function signIn(email: string, password: string) {
           lastLoginAt: serverTimestamp()
         });
       }
-      return { 
+      return {
         user,
         role: 'staff',
         restaurantId
@@ -336,9 +338,9 @@ export async function signIn(email: string, password: string) {
     if (error.code === 'auth/network-request-failed') {
       throw new Error('Erreur de connexion. Veuillez vérifier votre connexion internet.');
     }
-    if (error.code === 'auth/wrong-password' || 
-        error.code === 'auth/user-not-found' ||
-        error.code === 'auth/invalid-credential') {
+    if (error.code === 'auth/wrong-password' ||
+      error.code === 'auth/user-not-found' ||
+      error.code === 'auth/invalid-credential') {
       throw new Error('Email ou mot de passe incorrect');
     }
     throw new Error('Une erreur est survenue lors de la connexion');
@@ -381,23 +383,23 @@ export async function sendPasswordResetCode(email: string): Promise<void> {
     await sendPasswordResetEmail(auth, email, actionCodeSettings);
   } catch (error: any) {
     console.error('Error sending reset code:', error);
-    
+
     if (error.code === 'auth/user-not-found') {
       throw new Error('Aucun compte associé à cette adresse email');
     }
-    
+
     if (error.code === 'auth/invalid-email') {
       throw new Error('Adresse email invalide');
     }
-    
+
     if (error.code === 'auth/too-many-requests') {
       throw new Error('Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.');
     }
-    
+
     if (error.code === 'auth/unauthorized-continue-uri') {
       throw new Error('Configuration invalide. Veuillez contacter le support.');
     }
-    
+
     throw new Error('Une erreur est survenue. Veuillez réessayer plus tard.');
   }
 }
@@ -406,10 +408,10 @@ export async function impersonateRestaurant(restaurantId: string) {
   try {
     // Generate impersonation token
     const token = await generateImpersonationToken(restaurantId);
-    
+
     // Store token in localStorage
     localStorage.setItem('impersonationToken', token);
-    
+
     // Redirect to admin dashboard with token
     window.location.href = `/admin?token=${token}`;
   } catch (error) {
@@ -423,7 +425,7 @@ export async function signInWithImpersonationToken(token: string) {
     // Decode token
     const decodedData = atob(token).split(':');
     if (decodedData.length !== 3) throw new Error('Invalid token format');
-    
+
     const [type, restaurantId, timestamp] = decodedData;
 
     if (type !== 'impersonate') {
@@ -471,7 +473,7 @@ export function checkImpersonation() {
     if (!impersonationData) return null;
 
     const data = JSON.parse(impersonationData);
-    
+
     // Check if expired
     if (Date.now() > data.expiresAt) {
       localStorage.removeItem('impersonationData');

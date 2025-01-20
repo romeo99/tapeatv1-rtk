@@ -1,13 +1,14 @@
-import { useState, useEffect, useContext, useRef, useCallback } from 'react';
-import { Clock, Package, CheckCircle, XCircle, Calendar, CreditCard, Calculator, UtensilsCrossed, ShoppingBag, Bike } from 'lucide-react';
-import { useOrderContext } from '../../context/OrderContext';
-import { AdminLayoutContext } from '../../context/AdminLayoutContext';
-import { deductInventoryFromOrder } from '../../services/inventoryService';
+import { Bike, Calculator, Calendar, CheckCircle, Clock, CreditCard, Package, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSound } from 'use-sound';
-import { saveButtonPosition, getButtonPosition } from '../../services/uiPreferencesService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import OrderSearchKeypad from '../../components/admin/OrderSearchKeypad';
+import { AdminLayoutContext } from '../../context/AdminLayoutContext';
+import { notificationSoundUrl, useNotification } from '../../context/NotificationContext';
+import { useOrderContext } from '../../context/OrderContext';
 import { useRestaurantContext } from '../../context/RestaurantContext';
+import { deductInventoryFromOrder } from '../../services/inventoryService';
+import { getButtonPosition, saveButtonPosition } from '../../services/uiPreferencesService';
 
 const notificationSound = 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3';
 
@@ -20,7 +21,7 @@ const TABS = [
 
 const getStatusBadgeColor = (status: string, isActive: boolean) => {
   if (isActive) return 'bg-white text-emerald-600';
-  
+
   switch (status) {
     case 'scheduled':
       return 'bg-blue-500 text-white';
@@ -42,6 +43,7 @@ const orderTypeIcons = {
 };
 
 export default function LiveOrders() {
+  const { playNotificationSound } = useNotification();
   const { orders, updateOrderStatus } = useOrderContext();
   const { restaurant } = useRestaurantContext();
   const { isRegisterMode } = useContext(AdminLayoutContext);
@@ -60,7 +62,7 @@ export default function LiveOrders() {
   const [activeTab, setActiveTab] = useState('pending');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [showKeypad, setShowKeypad] = useState(false);
-  const [play] = useSound(notificationSound, { 
+  const [play] = useSound(notificationSoundUrl, {
     volume: 1.0,
     interrupt: true // Allow interrupting previous sound
   });
@@ -80,17 +82,36 @@ export default function LiveOrders() {
   useEffect(() => {
     const currentOrderIds = orders.filter(o => o.status === 'pending').map(o => o.id);
     const previousOrderIds = previousOrdersRef.current;
-    
+
     // Find new orders that weren't in the previous list
     const newOrderIds = currentOrderIds.filter(id => !previousOrderIds.includes(id));
-    
+
     if (newOrderIds.length > 0) {
-      try {
+      const notifications: { [key: string]: boolean } = JSON.parse(localStorage.getItem('orderNotifications') || '{}');
+
+      newOrderIds.forEach(id => {
+        if (!notifications[id]) {
+          playNotificationSound();
+          notifications[id] = true;
+        }
+      });
+
+      // Clean up notifications for orders that are no longer pending
+      const updatedNotifications: { [key: string]: boolean } = Object.keys(notifications)
+        .filter(id => currentOrderIds.includes(id))
+        .reduce((obj: { [key: string]: boolean }, key: string) => {
+          obj[key] = notifications[key];
+          return obj;
+        }, {});
+
+      localStorage.setItem('orderNotifications', JSON.stringify(updatedNotifications));
+
+      /* try {
         // Play notification sound
         const audio = new Audio(notificationSound);
         audio.volume = 1.0;
         const playPromise = audio.play();
-        
+
         if (playPromise !== undefined) {
           playPromise.catch((error) => {
             console.error('Error playing notification:', error);
@@ -98,17 +119,17 @@ export default function LiveOrders() {
         }
       } catch (error) {
         console.error('Error playing notification sound:', error);
-      }
-      
+      } */
+
       // Add to animated orders list
       setNewOrders(prev => [...prev, ...newOrderIds]);
-      
+
       // Remove from animation list after 5 seconds
       setTimeout(() => {
         setNewOrders(prev => prev.filter(id => !newOrderIds.includes(id)));
       }, 5000);
     }
-    
+
     // Update previous orders reference
     previousOrdersRef.current = currentOrderIds;
   }, [orders, play]);
@@ -121,7 +142,7 @@ export default function LiveOrders() {
       try {
         const savedPosition = await getButtonPosition(restaurant.id);
         const width = isRegisterMode ? window.innerWidth * 0.666 : window.innerWidth;
-        
+
         const position = savedPosition ? {
           x: Math.min(Math.max(0, savedPosition.x), width - 56),
           y: Math.min(Math.max(0, savedPosition.y), window.innerHeight - 56)
@@ -154,14 +175,14 @@ export default function LiveOrders() {
     try {
       if (!restaurant?.id) return;
       if (!isInitialized) return;
-      
+
       // Validate position before saving
       const width = isRegisterMode ? window.innerWidth * 0.666 : window.innerWidth;
       const validPosition = {
         x: Math.min(Math.max(0, position.x), width - 56),
         y: Math.min(Math.max(0, position.y), window.innerHeight - 56)
       };
-      
+
       await saveButtonPosition(restaurant.id, validPosition);
     } catch (error) {
       console.error('Error saving button position:', error);
@@ -172,7 +193,7 @@ export default function LiveOrders() {
   useEffect(() => {
     const width = window.innerWidth - (isRegisterMode ? window.innerWidth * 0.333 : 0);
     setContainerWidth(width);
-    
+
     // Adjust button position with animation when mode changes
     if (buttonPosition.x > width - 56) {
       const newX = Math.min(buttonPosition.x, width - 56);
@@ -197,22 +218,22 @@ export default function LiveOrders() {
     const animate = () => {
       const currentX = lastPosition.current.x;
       const currentY = lastPosition.current.y;
-      
+
       const dx = targetX - currentX;
       const dy = targetY - currentY;
-      
+
       if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
         lastPosition.current = { x: targetX, y: targetY };
         setButtonPosition({ x: targetX, y: targetY });
         setIsMoving(false);
         return;
       }
-      
+
       lastPosition.current = {
         x: currentX + dx * 0.3,
         y: currentY + dy * 0.3
       };
-      
+
       setButtonPosition(lastPosition.current);
       animationFrame.current = requestAnimationFrame(animate);
     };
@@ -225,7 +246,7 @@ export default function LiveOrders() {
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
     touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-    
+
     const rect = buttonRef.current?.getBoundingClientRect();
     if (rect) {
       dragOffsetRef.current = {
@@ -233,7 +254,7 @@ export default function LiveOrders() {
         y: touch.clientY - rect.top
       };
     }
-    
+
     longPressTimer.current = setTimeout(() => {
       setIsLongPress(true);
       setIsDragging(true);
@@ -284,7 +305,7 @@ export default function LiveOrders() {
         y: e.clientY - rect.top
       };
       setIsDragging(true);
-      
+
       // Create a transparent drag image
       const dragImg = document.createElement('div');
       dragImg.style.opacity = '0';
@@ -296,11 +317,11 @@ export default function LiveOrders() {
 
   const handleDrag = (e: React.DragEvent) => {
     if (e.clientX === 0 && e.clientY === 0) return; // Ignore invalid positions
-    
+
     const adjustedX = e.clientX - (isRegisterMode ? window.innerWidth * 0.333 : 0);
     const x = Math.max(0, Math.min(adjustedX - dragOffsetRef.current.x, containerWidth - 56));
     const y = Math.max(0, Math.min(e.clientY - dragOffsetRef.current.y, window.innerHeight - 56));
-    
+
     smoothMove(x, y);
   };
 
@@ -329,7 +350,7 @@ export default function LiveOrders() {
   }, []);
 
   // Filtrer uniquement les commandes actives
-  const activeOrders = orders.filter(order => 
+  const activeOrders = orders.filter(order =>
     ['scheduled', 'pending', 'preparing', 'ready'].includes(order.status)
   );
 
@@ -366,11 +387,11 @@ export default function LiveOrders() {
 
       // First update order status
       await updateOrderStatus(orderId, 'completed');
-      
+
       // Then deduct from inventory
       console.log('Deducting inventory for order:', order.items);
       await deductInventoryFromOrder(order.restaurantId, order.items);
-      
+
     } catch (err) {
       console.error('Error completing order:', err);
       alert('Une erreur est survenue lors de la finalisation de la commande');
@@ -392,19 +413,19 @@ export default function LiveOrders() {
     if (order) {
       setActiveTab(order.status);
       setExpandedOrder(order.id);
-      
+
       setTimeout(() => {
         const orderElement = document.getElementById(`order-${order.id}`);
         const container = document.querySelector('.p-4.space-y-4.overflow-auto');
-        
+
         if (orderElement && container) {
           // Ensure the order header is visible
           const headerOffset = 200; // Height of header + tabs
           const elementPosition = orderElement.offsetTop - headerOffset;
-          
+
           const containerRect = container.getBoundingClientRect();
           const elementRect = orderElement.getBoundingClientRect();
-          
+
           // Scroll to the element
           container.scrollTo({
             top: elementPosition,
@@ -413,7 +434,7 @@ export default function LiveOrders() {
 
           // Add pulse animation class only to found order
           orderElement.classList.add('animate-pulse-emerald');
-          
+
           // Remove animation class after completion
           setTimeout(() => {
             orderElement.classList.remove('animate-pulse-emerald');
@@ -440,25 +461,23 @@ export default function LiveOrders() {
           {TABS.map((tab) => {
             const count = orderCounts[tab.id] || 0;
             const Icon = tab.icon;
-            
+
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex items-center justify-between p-4 rounded-xl transition-colors border-2 border-emerald-500 ${
-                  activeTab === tab.id 
-                    ? 'bg-emerald-500 text-white shadow-lg transform scale-[1.02]'
-                    : 'bg-white text-gray-600 hover:bg-gray-50' 
-                }`}
+                className={`relative flex items-center justify-between p-4 rounded-xl transition-colors border-2 border-emerald-500 ${activeTab === tab.id
+                  ? 'bg-emerald-500 text-white shadow-lg transform scale-[1.02]'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <Icon className="h-5 w-5" />
                   <span className="font-medium text-[15px]">{tab.name}</span>
                 </div>
                 {count > 0 && (
-                  <span className={`min-w-[32px] h-8 px-2.5 flex items-center justify-center rounded-full text-sm font-bold ${
-                    getStatusBadgeColor(tab.id, activeTab === tab.id)
-                  }`}>
+                  <span className={`min-w-[32px] h-8 px-2.5 flex items-center justify-center rounded-full text-sm font-bold ${getStatusBadgeColor(tab.id, activeTab === tab.id)
+                    }`}>
                     {count}
                   </span>
                 )}
@@ -470,12 +489,11 @@ export default function LiveOrders() {
 
       <div className="p-4 space-y-4 overflow-auto" style={{ height: 'calc(100vh - 200px)' }}>
         {filteredOrders.map((order) => (
-          <div 
+          <div
             key={order.id}
             id={`order-${order.id}`}
-            className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 ${
-              newOrders.includes(order.id) ? 'animate-pulse-emerald' : ''
-            }`}
+            className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 ${newOrders.includes(order.id) ? 'animate-pulse-emerald' : ''
+              }`}
           >
             <div className="p-4 cursor-pointer" onClick={() => toggleOrderExpansion(order.id)}>
               <div className="flex items-start justify-between mb-2">
@@ -532,8 +550,8 @@ export default function LiveOrders() {
                     {order.items.map((item, index) => (
                       <div key={index} className="flex items-center gap-3">
                         {item.image && (
-                          <img 
-                            src={item.image} 
+                          <img
+                            src={item.image}
                             alt={item.name}
                             className="w-12 h-12 rounded-lg object-cover"
                           />
@@ -679,8 +697,8 @@ export default function LiveOrders() {
           <div className="text-center py-12">
             <p className="text-gray-500">
               Aucune commande {activeTab === 'scheduled' ? 'programmée' :
-                             activeTab === 'pending' ? 'en attente' :
-                             activeTab === 'preparing' ? 'en préparation' : 'prête'}
+                activeTab === 'pending' ? 'en attente' :
+                  activeTab === 'preparing' ? 'en préparation' : 'prête'}
             </p>
           </div>
         )}
@@ -697,9 +715,8 @@ export default function LiveOrders() {
       {/* Floating Keypad Button */}
       <button
         ref={buttonRef}
-        className={`w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all fixed z-40 ${
-          (isDragging || isLongPress) ? 'scale-110 cursor-move' : 'cursor-pointer'
-        }`}
+        className={`w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all fixed z-40 ${(isDragging || isLongPress) ? 'scale-110 cursor-move' : 'cursor-pointer'
+          }`}
         onClick={() => !isDragging && setShowKeypad(true)}
         draggable="true"
         onDragEnd={handleDragEnd}

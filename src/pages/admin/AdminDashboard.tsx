@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users, Clock } from 'lucide-react';
+import { Clock, DollarSign, ShoppingBag, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOrderContext } from '../../context/OrderContext'; 
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { signInWithImpersonationToken, checkImpersonation } from '../../services/authService';
 import AdminLayout from '../../components/admin/AdminLayout';
-import SalesChart from '../../components/admin/charts/SalesChart';
 import OrdersChart from '../../components/admin/charts/OrdersChart';
+import SalesChart from '../../components/admin/charts/SalesChart';
 import TopProducts from '../../components/admin/TopProducts';
-import { getDashboardStats } from '../../services/dashboardService';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useOrderContext } from '../../context/OrderContext';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { checkImpersonation, signInWithImpersonationToken } from '../../services/authService';
+import { getDashboardStats } from '../../services/dashboardService';
 
 export default function AdminDashboard() {
   const { restaurant } = useRestaurantContext();
@@ -20,6 +21,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { orders } = useOrderContext();
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useOrderNotification();
 
   const handlePeriodChange = async (period: string) => {
     try {
@@ -183,7 +186,7 @@ export default function AdminDashboard() {
                           Ventes du jour
                         </dt>
                         <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900"> 
+                          <div className="text-2xl font-semibold text-gray-900">
                             {stats?.totalRevenue.toFixed(2)} €
                           </div>
                         </dd>
