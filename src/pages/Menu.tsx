@@ -1,23 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Info, Plus, Power, Tag } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Info, Plus, Power, ChevronLeft, Tag, ChevronRight } from 'lucide-react';
+import Cart from '../components/Cart';
+import LoadingSpinner from '../components/LoadingSpinner';
+import MenuCustomization from '../components/MenuCustomization';
+import MenuHeader from '../components/MenuHeader';
+import ProductDetails from '../components/ProductDetails';
+import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { getFoodCourt } from '../services/foodCourtService';
-import { getRestaurant } from '../services/restaurantService';
-import { useCart } from '../context/CartContext';
 import { getActivePromotions } from '../services/promotionService';
-import type { Promotion } from '../types/firebase'; 
-import Cart from '../components/Cart';
-import MenuCustomization from '../components/MenuCustomization';
-import ProductDetails from '../components/ProductDetails';
-import LoadingSpinner from '../components/LoadingSpinner';
-import MenuHeader from '../components/MenuHeader';
+import { getRestaurant } from '../services/restaurantService';
+import type { Promotion } from '../types/firebase';
 
 export default function Menu() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const foodCourtId = searchParams.get('foodCourtId');
-  
+
   // Store foodCourtId in localStorage when it's present in URL
   useEffect(() => {
     if (foodCourtId) {
@@ -34,7 +34,7 @@ export default function Menu() {
 
   const restaurantId = searchParams.get('restaurantId');
   const isRegisterMode = searchParams.get('mode') === 'register';
-  
+
   const { restaurant, categories, menu: menuItems, loading, error, isOpen, themeColor } = useRestaurantContext();
   const [foodCourt, setFoodCourt] = useState<any>(null);
   const [foodCourtRestaurants, setFoodCourtRestaurants] = useState<any[]>([]);
@@ -83,7 +83,7 @@ export default function Menu() {
 
     const loadFoodCourt = async () => {
       try {
-        setLoading(true);
+        //setLoading(true);
         const foodCourtData = await getFoodCourt(foodCourtId);
         setFoodCourt(foodCourtData);
 
@@ -108,7 +108,7 @@ export default function Menu() {
       } catch (err) {
         console.error('Error loading food court:', err);
       } finally {
-        setLoading(false);
+        //setLoading(false);
       }
     };
 
@@ -117,7 +117,7 @@ export default function Menu() {
 
   useEffect(() => {
     if (!restaurantId) return;
-    
+
     const loadPromotions = async () => {
       try {
         const promotions = await getActivePromotions(restaurantId);
@@ -147,7 +147,7 @@ export default function Menu() {
   // Redirect to restaurant details if no restaurantId
   useEffect(() => {
     // En mode caisse, bloquer la navigation vers d'autres pages
-    if (isRegisterMode) {      
+    if (isRegisterMode) {
       // Bloquer la navigation et le retour arrière
       window.history.pushState(null, '', window.location.href);
       window.addEventListener('popstate', () => {
@@ -165,7 +165,7 @@ export default function Menu() {
 
   useEffect(() => {
     if (!restaurantId) return;
-    
+
     const loadPromotions = async () => {
       try {
         const promotions = await getActivePromotions(restaurantId);
@@ -225,7 +225,7 @@ export default function Menu() {
       ...item,
       restaurantId: restaurant?.id
     };
-    
+
     // Vibrate on mobile devices
     if (navigator.vibrate) {
       navigator.vibrate(50);
@@ -268,8 +268,8 @@ export default function Menu() {
     );
   }
 
-  const filteredItems = activeCategory && menuItems ? 
-    menuItems.filter(item => item.categoryId === activeCategory) : 
+  const filteredItems = activeCategory && menuItems ?
+    menuItems.filter(item => item.categoryId === activeCategory) :
     [];
 
   return (
@@ -299,27 +299,26 @@ export default function Menu() {
       <div className="fixed top-0 left-0 right-0 bg-white shadow-sm z-40">
         <div className="relative flex flex-col px-4 py-4">
           <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-            style={{ backgroundColor: themeColor }}
-          >
-            <ChevronLeft className="h-6 w-6 text-white" />
-          </button>
-          <div>
-            <h1 className="text-xl font-semibold">{restaurant?.name || 'Menu'}</h1>
+            <button
+              onClick={() => navigate(-1)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+              style={{ backgroundColor: themeColor }}
+            >
+              <ChevronLeft className="h-6 w-6 text-white" />
+            </button>
+            <div>
+              <h1 className="text-xl font-semibold">{restaurant?.name || 'Menu'}</h1>
+            </div>
           </div>
-          </div>
-          
+
           {foodCourtId && foodCourtRestaurants.length > 0 && (
             <div className="mt-4 flex gap-4 overflow-x-auto hide-scrollbar">
               {foodCourtRestaurants.map((r) => (
                 <button
                   key={r.id}
                   onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)}
-                  className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
-                    r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'
-                  }`}
+                  className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'
+                    }`}
                 >
                   <div className="w-12 h-12 rounded-full overflow-hidden">
                     <img
@@ -341,17 +340,16 @@ export default function Menu() {
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
-                  activeCategory === category.id
+                className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${activeCategory === category.id
                     ? 'text-white'
                     : 'bg-white text-gray-600'
-                }`}
+                  }`}
                 style={activeCategory === category.id ? { backgroundColor: themeColor } : undefined}
               >
                 {category.image ? (
                   <div className="w-7 h-7 rounded-full overflow-hidden">
-                    <img 
-                      src={category.image} 
+                    <img
+                      src={category.image}
                       alt={category.name}
                       className="w-full h-full object-cover"
                     />
@@ -383,7 +381,7 @@ export default function Menu() {
           <div className="fixed top-[145px] left-0 right-0 bg-emerald-500 text-white py-1.5 z-40">
             <div className="relative overflow-hidden">
               <div className="flex transition-transform duration-500 ease-in-out"
-                   style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
                 {activePromotions.map((promo, index) => (
                   <div key={promo.id} className="flex-shrink-0 w-full px-4 flex items-center justify-center gap-2">
                     <Tag className="h-4 w-4" />
@@ -399,9 +397,8 @@ export default function Menu() {
                   {activePromotions.map((_, index) => (
                     <div
                       key={index}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        currentSlide === index ? 'bg-white' : 'bg-white/50'
-                      }`}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${currentSlide === index ? 'bg-white' : 'bg-white/50'
+                        }`}
                     />
                   ))}
                 </div>
@@ -415,13 +412,12 @@ export default function Menu() {
             <div
               key={item.id}
               onClick={() => handleItemClick(item)}
-              className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[140px] ${
-                item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' 
-              }`}
+              className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[140px] ${item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                }`}
             >
               <div className="relative h-20">
-                <img 
-                  src={item.image} 
+                <img
+                  src={item.image}
                   alt={item.name}
                   className="w-full h-full object-cover"
                 />
@@ -432,7 +428,7 @@ export default function Menu() {
                     </span>
                   </div>
                 )}
-                <button 
+                <button
                   className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg"
                   onClick={(e) => handleInfoClick(e, item)}
                 >
@@ -446,17 +442,17 @@ export default function Menu() {
                 {activePromotions.map(promo => {
                   if (promo.conditions.productId === item.id) {
                     return (
-                      <div 
+                      <div
                         key={promo.id}
                         className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs"
                       >
                         <Tag className="h-3 w-3" />
                         {promo.type === 'double' ? '1 acheté = 2 offerts' :
-                         promo.type === 'discount' ? `-${promo.conditions.discountPercent}%` :
-                         promo.type === 'free' ? `${promo.conditions.freeProductName} offert` :
-                         promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` :
-                         promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` :
-                         ''}
+                          promo.type === 'discount' ? `-${promo.conditions.discountPercent}%` :
+                            promo.type === 'free' ? `${promo.conditions.freeProductName} offert` :
+                              promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` :
+                                promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` :
+                                  ''}
                       </div>
                     );
                   }
@@ -482,11 +478,10 @@ export default function Menu() {
 
       {items.length > 0 && (
         <div className="fixed bottom-4 left-4 right-4">
-          <button 
+          <button
             onClick={toggleCart}
-            className={`w-full text-white py-4 rounded-xl flex items-center justify-between px-4 ${
-              animatingItem ? 'animate-[cartShake_0.3s_ease-in-out]' : ''
-            }`}
+            className={`w-full text-white py-4 rounded-xl flex items-center justify-between px-4 ${animatingItem ? 'animate-[cartShake_0.3s_ease-in-out]' : ''
+              }`}
             style={{ backgroundColor: themeColor }}
           >
             <div className="flex items-center gap-2">
@@ -501,7 +496,7 @@ export default function Menu() {
       )}
 
       <Cart />
-      
+
       {selectedItem && showCustomization && (
         <MenuCustomization
           item={selectedItem}
@@ -528,7 +523,7 @@ export default function Menu() {
       )}
 
       {animatingItem && (
-        <div 
+        <div
           className="fixed w-32 h-32 rounded-xl bg-white shadow-xl z-[100] pointer-events-none left-1/2 top-1/2"
           style={{
             animation: 'addToCart 0.5s ease-in-out forwards',

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRestaurantContext } from '../context/RestaurantContext';
 
@@ -57,7 +57,7 @@ export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelec
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
-            
+
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -86,7 +86,7 @@ export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelec
               </div>
             </button>
           </div>
-          
+
           {showRestaurants && restaurants && restaurants.length > 0 && (
             <div className="absolute top-full left-0 right-0 bg-white shadow-lg border-t mt-1 z-50 animate-slideDown">
               <div className="max-h-[60vh] overflow-y-auto">

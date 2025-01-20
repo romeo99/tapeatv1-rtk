@@ -10,8 +10,6 @@ import { useRestaurantContext } from '../../context/RestaurantContext';
 import { deductInventoryFromOrder } from '../../services/inventoryService';
 import { getButtonPosition, saveButtonPosition } from '../../services/uiPreferencesService';
 
-const notificationSound = 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3';
-
 const TABS = [
   { id: 'scheduled', name: 'Programmées', icon: Calendar, color: 'bg-blue-100 text-blue-800' },
   { id: 'pending', name: 'En attente', icon: Clock, color: 'bg-red-100 text-red-800' },
@@ -587,9 +585,9 @@ export default function LiveOrders() {
                             </div>
                           )}
 
-                          {item.excludedIngredients?.length > 0 && (
+                          {item.excludedIngredients!.length > 0 && (
                             <div className="text-sm text-red-500 mt-1">
-                              Sans : {item.excludedIngredients.join(', ')}
+                              Sans : {item.excludedIngredients?.join(', ')}
                             </div>
                           )}
 
@@ -598,7 +596,7 @@ export default function LiveOrders() {
                               <span className="font-medium">Remarque client :</span> {item.remarks}
                             </p>
                           )}
-                          {/* Affichage des sections de combo */}
+                          {/* Affichage des sections de combo 
                           {item.sections?.map((section, idx) => (
                             <div key={idx} className="text-sm text-gray-500 mt-1">
                               <span className="font-medium">{section.name} : </span>
@@ -609,7 +607,7 @@ export default function LiveOrders() {
                             </div>
                           ))}
 
-                          {/* Affichage des options classiques */}
+                          {/* Affichage des options classiques 
                           {item.menuOptions && !item.sections && (
                             <div className="text-sm text-gray-500">
                               {item.menuOptions.drink && (
@@ -624,9 +622,9 @@ export default function LiveOrders() {
                             </div>
                           )}
 
-                          {item.excludedIngredients?.length > 0 && (
+                          {item.excludedIngredients!.length > 0 && (
                             <div className="text-sm text-red-500 mt-1">
-                              Sans : {item.excludedIngredients.join(', ')}
+                              Sans : {item.excludedIngredients?.join(', ')}
                             </div>
                           )}
 
@@ -634,7 +632,7 @@ export default function LiveOrders() {
                             <p className="text-sm text-gray-600 italic mt-1 bg-gray-50 p-2 rounded-lg">
                               <span className="font-medium">Remarque client :</span> {item.remarks}
                             </p>
-                          )}
+                          )}*/}
                         </div>
                       </div>
                     ))}

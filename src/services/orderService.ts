@@ -1,19 +1,15 @@
-import { 
-  collection, 
+import {
+  addDoc,
+  collection,
   doc,
   getDoc,
-  setDoc,
-  addDoc,
-  updateDoc,
-  serverTimestamp,
-  runTransaction,
-  query,
-  collectionGroup,
-  where,
   getDocs,
-  doc
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+  updateDoc
 } from 'firebase/firestore';
-import { db, auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { sendOrderNotification } from './notificationService';
 
 async function generateOrderNumber(restaurantId: string, paymentMethod: string): Promise<string> {
@@ -26,26 +22,26 @@ async function generateOrderNumber(restaurantId: string, paymentMethod: string):
     // Use transaction to ensure atomic counter increment
     const newCounter = await runTransaction(db, async (transaction) => {
       const counterDoc = await transaction.get(counterRef);
-      
+
       let counter = 1;
       if (counterDoc.exists()) {
         counter = (counterDoc.data()[paymentMethod] || 0) + 1;
         if (counter > 999) counter = 1; // Reset to 1 after 999
       }
-      
+
       transaction.set(counterRef, {
         [paymentMethod]: counter,
         updatedAt: serverTimestamp()
       }, { merge: true });
-      
+
       return counter;
     });
 
     // Format order number
     const prefix = paymentMethod === 'card' ? 'CB' :
-                  paymentMethod === 'cash' ? 'ESP' :
-                  paymentMethod === 'apple_pay' ? 'AP' : 'CMD';
-    
+      paymentMethod === 'cash' ? 'ESP' :
+        paymentMethod === 'apple_pay' ? 'AP' : 'CMD';
+
     return `${prefix}${newCounter.toString().padStart(3, '0')}`;
   } catch (error) {
     console.error('Error generating order number:', error);
@@ -62,6 +58,8 @@ export async function createOrder(restaurantId: string, orderData: {
     image?: string;
     remarks?: string;
     menuOptions?: any;
+    sections: { name: string, choice: string, included: boolean }
+    excludedIngredients?: string[];
   }>;
   type: 'dine_in' | 'takeaway' | 'delivery';
   subtotal: number;
@@ -79,7 +77,7 @@ export async function createOrder(restaurantId: string, orderData: {
     if (!restaurantId?.trim()) {
       throw new Error('ID du restaurant invalide');
     }
-    
+
     if (!Array.isArray(orderData?.items) || orderData.items.length === 0) {
       throw new Error('La commande doit contenir au moins un article');
     }
@@ -90,7 +88,7 @@ export async function createOrder(restaurantId: string, orderData: {
 
     // Get restaurant info first
     const restaurantDoc = await getDoc(doc(db, 'restaurants', restaurantId));
-    
+
     if (!restaurantDoc.exists()) {
       throw new Error('Restaurant invalide ou introuvable');
     }
@@ -120,18 +118,13 @@ export async function createOrder(restaurantId: string, orderData: {
         sauces: Array.isArray(item.menuOptions.sauces) ? item.menuOptions.sauces : []
       } : null,
       excludedIngredients: Array.isArray(item.excludedIngredients) ? item.excludedIngredients : [],
-      sections: Array.isArray(item.sections) ? item.sections.map(section => ({
-        name: String(section.name || ''),
-        choice: String(section.choice || ''),
-        included: Boolean(section.included)
-      })) : null
     }));
 
     // Get table number if present
     const orderTypeData = localStorage.getItem('orderType');
     let orderType = { type: 'takeaway' };
     let tableNumber = null;
-    
+
     try {
       if (orderTypeData) {
         orderType = JSON.parse(orderTypeData);
@@ -157,6 +150,8 @@ export async function createOrder(restaurantId: string, orderData: {
       throw new Error('L\'adresse de livraison est requise');
     }
 
+    console.log("cleanedItems", cleanedItems);
+
     // Prepare order data
     const orderToCreate = {
       restaurantId,
@@ -164,14 +159,14 @@ export async function createOrder(restaurantId: string, orderData: {
       items: cleanedItems,
       type: orderType.type,
       status: 'pending',
-      paymentStatus: 'paid', // Always mark as paid in register mode
+      paymentStatus: 'pending', // Always mark as paid in register mode
       paymentMethod: orderData.paymentMethod,
       subtotal: Math.max(0, Number(orderData.subtotal) || 0),
       total: Math.max(0, Number(orderData.total) || 0),
       orderNumber,
       ...(tableNumber && { table: tableNumber }),
-      ...(orderData.scheduledTime && { 
-        scheduledTime: orderData.scheduledTime 
+      ...(orderData.scheduledTime && {
+        scheduledTime: orderData.scheduledTime
       }),
       ...(orderData.delivery && {
         delivery: {
@@ -204,7 +199,7 @@ export async function createOrder(restaurantId: string, orderData: {
     await runTransaction(db, async (transaction) => {
       const restaurantRef = doc(db, 'restaurants', restaurantId);
       const restaurantDoc = await transaction.get(restaurantRef);
-      
+
       if (!restaurantDoc.exists()) {
         throw new Error('Restaurant not found');
       }
@@ -256,13 +251,13 @@ export async function createOrder(restaurantId: string, orderData: {
     const statsDoc = await getDoc(restaurantRef);
     const currentStats = statsDoc.data()?.stats || {
       totalRevenue: 0,
-      totalOrders: 0, 
+      totalOrders: 0,
       averageOrderValue: 0,
       pendingOrders: 0,
       dailyRevenue: {},
       dailyOrders: {},
       paymentMethodBreakdown: {
-        card: 0, 
+        card: 0,
         cash: 0,
         apple_pay: 0
       },
@@ -270,7 +265,7 @@ export async function createOrder(restaurantId: string, orderData: {
     };
 
     const dateKey = new Date().toISOString().split('T')[0];
-    
+
     await updateDoc(restaurantRef, {
       stats: {
         ...currentStats,
@@ -305,8 +300,8 @@ export async function createOrder(restaurantId: string, orderData: {
     return orderId;
   } catch (error) {
     console.error('Error creating order:', error);
-    throw error instanceof Error 
-      ? error 
+    throw error instanceof Error
+      ? error
       : new Error('Une erreur est survenue lors de la création de la commande');
   }
 }
@@ -314,25 +309,25 @@ export async function createOrder(restaurantId: string, orderData: {
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
   try {
     if (!orderId) throw new Error('Order ID is required');
-    
+
     // Find the restaurant that has this order
     const restaurantsRef = collection(db, 'restaurants');
     const restaurantsSnapshot = await getDocs(restaurantsRef);
-    
+
     let orderRef;
     let orderData;
-    
+
     for (const restaurantDoc of restaurantsSnapshot.docs) {
       const tempOrderRef = doc(db, 'restaurants', restaurantDoc.id, 'orders', orderId);
       const orderDoc = await getDoc(tempOrderRef);
-      
+
       if (orderDoc.exists()) {
         orderRef = tempOrderRef;
         orderData = orderDoc.data();
         break;
       }
     }
-    
+
     if (!orderRef || !orderData) {
       throw new Error('Order not found in any restaurant');
     }

@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '../config/firebase';
-import { createOrder as createFirebaseOrder } from '../services/orderService';
 import { sendOrderNotification } from '../services/notificationService';
-import { useRestaurantContext } from './RestaurantContext';
-import { useAuth } from './AuthContext';
+import { createOrder as createFirebaseOrder } from '../services/orderService';
 import type { Order } from '../types/firebase';
+import { useAuth } from './AuthContext';
+import { useRestaurantContext } from './RestaurantContext';
 
 interface OrderContextType {
   orders: Order[];
@@ -47,16 +47,16 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { restaurant } = useRestaurantContext();
-  const [lastUpdatedOrder, setLastUpdatedOrder] = useState<{id: string; status: string} | null>(null);
+  const [lastUpdatedOrder, setLastUpdatedOrder] = useState<{ id: string; status: string } | null>(null);
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       if (!restaurant?.id) throw new Error('Restaurant ID is required');
       if (!orderId?.trim()) throw new Error('Order ID is required');
-      
+
       const orderRef = doc(db, 'restaurants', restaurant.id, 'orders', orderId);
       const orderDoc = await getDoc(orderRef);
-      
+
       if (!orderDoc.exists()) {
         throw new Error('Order not found');
       }
@@ -68,9 +68,9 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       };
 
       // If order is cash payment and status changes to preparing, mark as paid
-      if (orderData.paymentMethod === 'cash' && 
-          orderData.paymentStatus === 'pending' && 
-          status === 'preparing') {
+      if (orderData.paymentMethod === 'cash' &&
+        orderData.paymentStatus === 'pending' &&
+        status === 'preparing') {
         updates.paymentStatus = 'paid';
       }
       await updateDoc(orderRef, updates);
@@ -79,7 +79,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       if (order?.userId) {
         await sendOrderNotification(order.userId, orderId, status);
       }
-      return true;
+      return;
     } catch (err) {
       console.error('Error updating order status:', err);
       throw new Error('Failed to update order status');
@@ -107,17 +107,17 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         ordersData.forEach(order => {
           const oldOrder = orders.find(o => o.id === order.id);
           // Vérifier si c'est une mise à jour différente de la dernière
-          if (oldOrder && 
-              oldOrder.status !== order.status && 
-              (!lastUpdatedOrder || 
-               lastUpdatedOrder.id !== order.id || 
-               lastUpdatedOrder.status !== order.status)) {
+          if (oldOrder &&
+            oldOrder.status !== order.status &&
+            (!lastUpdatedOrder ||
+              lastUpdatedOrder.id !== order.id ||
+              lastUpdatedOrder.status !== order.status)) {
             setLastUpdatedOrder({ id: order.id, status: order.status });
             sendOrderNotification(user.uid, order.id, order.status);
           }
         });
       }
-      
+
       setOrders(ordersData);
       setLoading(false);
     }, (err) => {
@@ -139,8 +139,8 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getDeliveryOrders = () => {
-    return orders.filter(order => 
-      order.type === 'delivery' && 
+    return orders.filter(order =>
+      order.type === 'delivery' &&
       ['pending', 'confirmed'].includes(order.status)
     );
   };
