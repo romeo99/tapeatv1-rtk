@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Save, Loader2, Calendar } from 'lucide-react';
 import { collection, doc, getDoc } from 'firebase/firestore';
+import { ChevronLeft, Loader2, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import AdminLayout from '../../../components/admin/AdminLayout';
 import { db } from '../../../config/firebase';
 import { useRestaurantContext } from '../../../context/RestaurantContext';
-import AdminLayout from '../../../components/admin/AdminLayout';
+import useOrderNotification from '../../../hooks/useOrderNotification';
 import { createPromotion, updatePromotion } from '../../../services/promotionService';
 import type { Promotion } from '../../../types/firebase';
 
@@ -21,6 +22,8 @@ export default function PromotionForm() {
   const { restaurant, menu = [] } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useOrderNotification();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -44,7 +47,7 @@ export default function PromotionForm() {
           setLoading(true);
           const promotionsRef = collection(db, 'restaurants', restaurant.id, 'promotions');
           const promotionDoc = await getDoc(doc(promotionsRef, id));
-          
+
           if (promotionDoc.exists()) {
             const data = promotionDoc.data();
             setFormData({
@@ -161,19 +164,18 @@ export default function PromotionForm() {
                   {PROMOTION_TYPES.map((type) => (
                     <label
                       key={type.id}
-                      className={`relative flex flex-col p-4 cursor-pointer rounded-lg border-2 transition-colors ${
-                        formData.type === type.id
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 hover:border-emerald-200'
-                      }`}
+                      className={`relative flex flex-col p-4 cursor-pointer rounded-lg border-2 transition-colors ${formData.type === type.id
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-gray-200 hover:border-emerald-200'
+                        }`}
                     >
                       <input
                         type="radio"
                         name="promotionType"
                         value={type.id}
                         checked={formData.type === type.id}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
                           type: e.target.value as Promotion['type']
                         }))}
                         className="sr-only"
@@ -191,8 +193,8 @@ export default function PromotionForm() {
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     status: e.target.value as 'active' | 'inactive'
                   }))}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"

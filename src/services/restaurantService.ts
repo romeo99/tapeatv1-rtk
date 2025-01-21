@@ -1,21 +1,18 @@
 import {
-  doc,
-  updateDoc,
-  serverTimestamp,
-  getDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
+  serverTimestamp,
+  updateDoc,
   where,
-  setDoc,
-  writeBatch,
-  orderBy
+  writeBatch
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 import type { Restaurant } from '../types/firebase';
 import { isRestaurantOpen } from '../utils/restaurantHours';
-import { getLocationFromCache, saveLocationToCache } from './locationCache';
 const DEFAULT_LOCATION = {
   lat: 43.2965,  // Marseille coordinates
   lng: 5.3698
@@ -37,7 +34,7 @@ export async function getNearbyRestaurants(lat: number, lng: number, radius: num
       if (!data) return null;
 
       // Vérifier si le restaurant est ouvert
-      const isOpen = data.isOpen !== false && isRestaurantOpen(data);
+      const isOpen = data.isOpen !== false && isRestaurantOpen(data as Restaurant);
 
       const location = data.location || DEFAULT_LOCATION;
       const distance = calculateDistance(lat, lng, location.lat, location.lng);
@@ -63,10 +60,12 @@ export async function getNearbyRestaurants(lat: number, lng: number, radius: num
         distance
       };
     }));
-    
+
     // Filter out null values (restaurants without location) and sort by distance
     const validRestaurants = restaurants.filter((r): r is NonNullable<typeof r> => r !== null);
-    
+
+    console.log(validRestaurants);
+
     console.log(`Found ${validRestaurants.length} restaurants with valid coordinates out of ${restaurants.length} total`);
 
     return validRestaurants.sort((a, b) => a.distance - b.distance);
@@ -78,15 +77,15 @@ export async function getNearbyRestaurants(lat: number, lng: number, radius: num
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3; // Earth's radius in meters
-  const φ1 = lat1 * Math.PI/180;
-  const φ2 = lat2 * Math.PI/180;
-  const Δφ = (lat2-lat1) * Math.PI/180;
-  const Δλ = (lon2-lon1) * Math.PI/180;
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
-          Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c; // Distance in meters
 }
@@ -111,7 +110,7 @@ async function calculateTravelTime(
     if (response.rows[0]?.elements[0]?.duration?.text) {
       return response.rows[0].elements[0].duration.text;
     }
-    
+
     console.warn('No duration found in response, using default');
     return '15-20 min';
   } catch (error) {
@@ -134,12 +133,12 @@ export async function getRestaurant(restaurantId: string) {
 
     const restaurantRef = doc(db, 'restaurants', restaurantId);
     const restaurantDoc = await getDoc(restaurantRef);
-    
+
     if (!restaurantDoc.exists()) {
       console.warn(`Restaurant ${restaurantId} not found`);
       return {
         id: restaurantId,
-        name: 'Restaurant non disponible', 
+        name: 'Restaurant non disponible',
         logo: 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'
       };
     }
@@ -193,7 +192,7 @@ export async function updateRestaurant(restaurantId: string, data: Partial<Resta
     if (data.serviceOptions?.length === 0) {
       throw new Error('Veuillez sélectionner au moins une option de service');
     }
-    
+
     // Clean up data by removing undefined values
     const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
       if (value !== undefined) {
@@ -233,10 +232,10 @@ export async function uploadRestaurantImage(restaurantId: string, file: File, im
     const fileExtension = file.name.split('.').pop();
     const fileName = `${restaurantId}/${imageType}_${Date.now()}.${fileExtension}`;
     const storageRef = ref(storage, `restaurants/${fileName}`);
-    
+
     await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(storageRef);
-    
+
     const restaurantRef = doc(db, 'restaurants', restaurantId);
     await updateDoc(restaurantRef, {
       [`${imageType}Image`]: downloadURL,
@@ -253,7 +252,7 @@ export async function uploadRestaurantImage(restaurantId: string, file: File, im
 export async function createRestaurant(restaurantId: string, data: Partial<Restaurant>) {
   try {
     const restaurantRef = doc(db, 'restaurants', restaurantId);
-    
+
     // Ensure default images if none provided
     const defaultData = {
       logo: 'https://via.placeholder.com/200x200?text=Logo',
@@ -262,7 +261,7 @@ export async function createRestaurant(restaurantId: string, data: Partial<Resta
     };
 
     const batch = writeBatch(db);
-    
+
     // Create main restaurant document
     batch.set(restaurantRef, {
       ...defaultData,
@@ -304,7 +303,7 @@ export async function getRestaurantsByOwner(ownerId: string) {
     const restaurantsRef = collection(db, 'restaurants');
     const q = query(restaurantsRef, where('ownerId', '==', ownerId));
     const querySnapshot = await getDocs(q);
-    
+
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -325,7 +324,7 @@ export async function getAddressFromCoords(lat: number, lng: number): Promise<st
     if (response.results[0]) {
       return response.results[0].formatted_address;
     }
-    
+
     throw new Error('No address found');
   } catch (error) {
     console.error('Error getting address:', error);
@@ -333,7 +332,7 @@ export async function getAddressFromCoords(lat: number, lng: number): Promise<st
   }
 }
 
-export async function getCoordsFromAddress(address: string): Promise<{lat: number; lng: number}> {
+export async function getCoordsFromAddress(address: string): Promise<{ lat: number; lng: number }> {
   try {
     if (!address?.trim()) {
       console.warn('Empty address provided');
@@ -344,29 +343,29 @@ export async function getCoordsFromAddress(address: string): Promise<{lat: numbe
     const formattedAddress = standardizeAddress(address);
 
     const geocoder = new google.maps.Geocoder();
-    const response = await geocoder.geocode({ 
+    const response = await geocoder.geocode({
       address: formattedAddress,
       region: 'FR', // Restrict to France
       componentRestrictions: { country: 'FR' }
     });
-    
+
     if (response.results[0]?.geometry?.location) {
       const location = response.results[0].geometry.location;
       const coords = {
         lat: location.lat(),
         lng: location.lng()
       };
-      
+
       // Validate coordinates
-      if (isNaN(coords.lat) || isNaN(coords.lng) || 
-          coords.lat === 0 || coords.lng === 0) {
+      if (isNaN(coords.lat) || isNaN(coords.lng) ||
+        coords.lat === 0 || coords.lng === 0) {
         console.warn('Invalid coordinates returned from geocoding');
         return DEFAULT_LOCATION;
       }
-      
+
       return coords;
     }
-    
+
     console.warn(`No location found for address: ${formattedAddress}`);
     return DEFAULT_LOCATION;
   } catch (error) {
@@ -383,49 +382,49 @@ export async function getCoordsFromAddress(address: string): Promise<{lat: numbe
 // Helper function to standardize address format
 function standardizeAddress(address: string): string {
   let formattedAddress = address.trim();
-  
+
   // Remove any extra spaces
   formattedAddress = formattedAddress.replace(/\s+/g, ' ');
-  
+
   // Check if address already matches the standard format
   if (/^[\w\s]+,\s*\d{5}\s*[\w\s]+,\s*France$/i.test(formattedAddress)) {
     return formattedAddress;
   }
-  
+
   // Extract components from address
   const match = formattedAddress.match(/^(.*?)(?:,\s*)?(\d{5})(?:,\s*)?([\w\s]+)?(?:,\s*France)?$/i);
   if (match) {
     const [_, street, postalCode, city = 'Marseille'] = match;
     return `${street}, ${postalCode} ${city}, France`;
   }
-  
+
   // If no match, just append France if needed
   if (!formattedAddress.toLowerCase().includes('france')) {
     formattedAddress += ', France';
   }
-  
+
   return formattedAddress;
 }
 // Helper function to generate search terms
 function generateSearchTerms(name: string, type: string): string[] {
   const terms = [];
   const text = `${name} ${type}`.toLowerCase();
-  
+
   // Add full text
   terms.push(text);
-  
+
   // Add each word
   text.split(/\s+/).forEach(word => {
     if (word.length > 1) {
       terms.push(word);
     }
   });
-  
+
   // Add partial matches (minimum 2 characters)
   for (let i = 0; i < text.length - 1; i++) {
     terms.push(text.slice(0, i + 2));
   }
-  
+
   return [...new Set(terms)];
 }
 
@@ -433,7 +432,7 @@ export async function getAllRestaurants() {
   try {
     const restaurantsRef = collection(db, 'restaurants');
     const snapshot = await getDocs(restaurantsRef);
-    
+
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),

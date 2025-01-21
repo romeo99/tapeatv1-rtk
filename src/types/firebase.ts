@@ -4,7 +4,7 @@ export interface Order {
   restaurantId: string;
   table?: string;
   type: 'delivery' | 'takeaway' | 'dine_in';
-  status: 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'completed' | 'cancelled' | 'ready';
   items: OrderItem[];
   subtotal: number;
   tax: number;
@@ -22,6 +22,7 @@ export interface Order {
   paymentStatus: string;
   paymentMethod: string;
   scheduledTime: string | null;
+  userId: string | null;
 }
 
 export interface InventoryItem {
@@ -39,7 +40,7 @@ export interface InventoryItem {
   updatedAt: Date;
   linkedItems?: Array<{
     menuItemId: string;
-    menuItemName: string; 
+    menuItemName: string;
     quantityPerItem: number;
   }>;
 }
@@ -71,8 +72,13 @@ export interface OrderItem {
   price: number;
   quantity: number;
   image?: string;
-  remarks: string | null;
+  remarks?: string | null;
   excludedIngredients?: string[];
+  menuOptions?: {
+    drink: boolean;
+    side: boolean;
+    sauces: string[];
+  };
   sections?: Array<{
     name: string;
     choice: string;
@@ -101,4 +107,6 @@ export interface Restaurant {
   updatedAt: Date;
   totalRevenue?: number;
   orderCount?: number;
+  paymentMethods: string[];
+  serviceOptions: string[];
 }

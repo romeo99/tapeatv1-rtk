@@ -1,6 +1,7 @@
+import { ChevronDown, Mail, MessageCircle, Phone } from 'lucide-react';
 import { useState } from 'react';
-import { Mail, Phone, MessageCircle, ChevronDown } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import useOrderNotification from '../../hooks/useOrderNotification';
 import { useTawkTo } from '../../hooks/useTawkTo';
 
 interface FAQItem {
@@ -31,6 +32,8 @@ export default function Support() {
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
   useTawkTo('675554292480f5b4f5aa617f/1ieil1h9b');
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  useOrderNotification();
 
   const toggleChat = () => {
     if (window.Tawk_API) {
@@ -121,10 +124,9 @@ export default function Support() {
                   className="w-full flex items-center justify-between text-left"
                 >
                   <h3 className="font-medium pr-4">{item.question}</h3>
-                  <ChevronDown 
-                    className={`h-5 w-5 text-gray-500 transition-transform ${
-                      expandedItem === index ? 'transform rotate-180' : ''
-                    }`}
+                  <ChevronDown
+                    className={`h-5 w-5 text-gray-500 transition-transform ${expandedItem === index ? 'transform rotate-180' : ''
+                      }`}
                   />
                 </button>
                 {expandedItem === index && (

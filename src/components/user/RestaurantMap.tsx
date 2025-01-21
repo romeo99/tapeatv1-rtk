@@ -1,8 +1,7 @@
+import { GoogleMap, InfoWindowF, MarkerF, useLoadScript } from '@react-google-maps/api';
+import { ChevronRight, Crosshair, MapPin, Minus, Plus, Star } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { GoogleMap, useLoadScript, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, ChevronRight, Star, Plus, Minus, Crosshair } from 'lucide-react';
-import { formatDistance } from '../../utils/formatters';
 import LoadingSpinner from '../LoadingSpinner';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
@@ -66,9 +65,9 @@ export default function RestaurantMap({ restaurants, userLocation, onRestaurantC
       const radius = 0.02;
       bounds.extend({ lat: userLocation.lat + radius, lng: userLocation.lng + radius });
       bounds.extend({ lat: userLocation.lat - radius, lng: userLocation.lng - radius });
-      
+
       mapRef.current.fitBounds(bounds);
-      
+
       const listener = google.maps.event.addListener(mapRef.current, 'idle', () => {
         if (mapRef.current && mapRef.current.getZoom() > 14) {
           mapRef.current.setZoom(14);
@@ -147,40 +146,44 @@ export default function RestaurantMap({ restaurants, userLocation, onRestaurantC
             anchor: new google.maps.Point(12, 12),
             scaledSize: new google.maps.Size(24, 24)
           }}
-            zIndex={2}
+          zIndex={2}
         />
 
         {/* Restaurant markers */}
-        {restaurants.map(restaurant => (
-          <MarkerF
-            key={restaurant.id}
-            position={restaurant.location}
-            title={restaurant.name}
-            onClick={() => setSelectedRestaurant(restaurant)}
-            options={{
-              icon: {
-                url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="20" cy="20" r="19" fill="white" stroke="#10B981" stroke-width="2"/>
-                    <circle cx="20" cy="20" r="16" fill="white"/>
-                    <foreignObject x="6" y="6" width="28" height="28">
-                      <div xmlns="http://www.w3.org/1999/xhtml" 
-                           style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: white;">
-                        <img src="${restaurant.logo || 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'}"
-                             style="width: 100%; height: 100%; object-fit: cover;"
-                             alt="${restaurant.name}"/>
-                      </div>
-                    </foreignObject>
-                  </svg>
-                `)}`,
-                anchor: new google.maps.Point(20, 20),
-                scaledSize: new google.maps.Size(40, 40)
-              },
-              optimized: true,
-              zIndex: 1
-            }}
-          />
-        ))}
+        {restaurants.map(restaurant => {
+
+          return (
+            <MarkerF
+              key={restaurant.id}
+              position={restaurant.location}
+              title={restaurant.name}
+              onClick={() => setSelectedRestaurant(restaurant)}
+              options={{
+                icon: {
+                  url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="19" fill="white" stroke="#10B981" stroke-width="2"/>
+        <circle cx="20" cy="20" r="16" fill="white"/>
+        <foreignObject x="6" y="6" width="28" height="28">
+          <div xmlns="http://www.w3.org/1999/xhtml" 
+               style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: white;">
+            <img src="${restaurant.logo || 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'}"
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 alt="${restaurant.name}"/>
+          </div>
+        </foreignObject>
+      </svg>
+    `)}`,
+                  anchor: new google.maps.Point(20, 20),
+                  scaledSize: new google.maps.Size(40, 40),
+
+                },
+                optimized: true,
+                zIndex: 1
+              }}
+            />
+          )
+        })}
 
         {/* Info window for selected restaurant */}
         {selectedRestaurant && (

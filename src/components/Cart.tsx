@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { Calendar, Minus, Plus, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Plus, Minus, Trash2, Calendar } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { getRestaurant } from '../services/restaurantService';
@@ -32,7 +32,7 @@ export default function Cart() {
             return {
               id: restaurant.id,
               name: restaurant.name
-            }; 
+            };
           })
         );
 
@@ -74,22 +74,22 @@ export default function Cart() {
   const handleCheckout = () => {
     toggleCart();
     const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
-    const foodCourtId = localStorage.getItem('foodCourtId'); 
+    const foodCourtId = localStorage.getItem('foodCourtId');
     const restaurantId = items[0]?.restaurantId;
-    
+
     // Pour les commandes food court, on vérifie juste le foodCourtId
     if (foodCourtId) {
       navigate(`/checkout?foodCourtId=${foodCourtId}`);
       return;
     }
-    
+
     // Pour les commandes normales, on vérifie le restaurantId
     // Pour les commandes normales, on vérifie le restaurantId
     if (!restaurantId) {
       console.error('No restaurant ID found');
       return;
     }
-    navigate(isRegisterMode 
+    navigate(isRegisterMode
       ? `/checkout?mode=register&restaurantId=${restaurantId}`
       : `/checkout?restaurantId=${restaurantId}`
     );
@@ -112,11 +112,14 @@ export default function Cart() {
     acc[restaurantId].subtotal += item.price * item.quantity;
     acc[restaurantId].items.push(item);
     return acc;
-  }, {} as Record<string, { 
-    name: string; 
+  }, {} as Record<string, {
+    name: string;
     subtotal: number;
-    items: typeof items 
+    items: typeof items
   }>);
+
+
+  console.log("items", items);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
@@ -166,7 +169,7 @@ export default function Cart() {
                     {/* Restaurant items */}
                     <div className="border-l-2 border-emerald-500 pl-4 space-y-4">
                       {restaurantItems.map((item, index) => (
-                        <div 
+                        <div
                           key={`${item.id}-${index}-${JSON.stringify(item.menuOptions)}`}
                           className="flex items-center gap-4 bg-white rounded-lg p-3 shadow-sm"
                         >
@@ -196,14 +199,14 @@ export default function Cart() {
                                 {item.menuOptions.side && (
                                   <p className="mt-0.5">Accompagnement : {item.menuOptions.side}</p>
                                 )}
-                                {item.menuOptions.sauces?.length > 0 && (
-                                  <p className="mt-0.5">Sauces : {item.menuOptions.sauces.join(', ')}</p>
+                                {item.menuOptions.sauces!.length > 0 && (
+                                  <p className="mt-0.5">Sauces : {item.menuOptions.sauces?.join(', ')}</p>
                                 )}
                               </div>
                             )}
-                            {item.excludedIngredients?.length > 0 && (
+                            {item.excludedIngredients && item.excludedIngredients?.length > 0 && (
                               <p className="text-sm text-red-500 mt-1">
-                                Sans : {item.excludedIngredients.join(', ')}
+                                Sans : {item.excludedIngredients?.join(', ')}
                               </p>
                             )}
                             {item.remarks && (
@@ -267,7 +270,7 @@ export default function Cart() {
                 <span className="font-medium">Total</span>
                 <span className="font-semibold" style={{ color: themeColor }}>{total.toFixed(2)} €</span>
               </div>
-              <button 
+              <button
                 onClick={handleCheckout}
                 className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium"
                 style={{ backgroundColor: themeColor }}

@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { ChevronLeft, Image, Loader2, Plus, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Plus, Loader2, Image, Upload, X } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { createCombo, updateMenuItem } from '../../services/menuService';
-import { uploadImage } from '../../services/uploadService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import ComboSectionForm from '../../components/admin/ComboSectionForm';
 import ProductSelector from '../../components/admin/ProductSelector';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { createCombo, updateMenuItem } from '../../services/menuService';
+import { uploadImage } from '../../services/uploadService';
 
 export default function ComboForm() {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export default function ComboForm() {
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+
+  useOrderNotification();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -126,7 +129,7 @@ export default function ComboForm() {
     try {
       setSaving(true);
       setError(null);
-      
+
       // Upload section images first
       const sectionsWithImages = await Promise.all(formData.sections.map(async (section) => {
         if (section.imageFile) {

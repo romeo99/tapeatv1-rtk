@@ -1,35 +1,36 @@
-import { useState, useEffect } from 'react';
-import { 
-  Download,
-  Filter,
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip
+} from 'chart.js';
+import {
+  BarChart3,
   Calendar,
-  DollarSign,
   CreditCard,
-  TrendingUp,
+  DollarSign,
+  Download,
   FileText,
+  Filter,
   Loader2,
   PieChart,
-  BarChart3
+  TrendingUp
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
-import SalesChart from '../../components/admin/charts/SalesChart';
-import OrdersChart from '../../components/admin/charts/OrdersChart';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
 import AdminLayout from '../../components/admin/AdminLayout';
+import OrdersChart from '../../components/admin/charts/OrdersChart';
+import SalesChart from '../../components/admin/charts/SalesChart';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { useOrderContext } from '../../context/OrderContext';
 import { useRestaurantContext } from '../../context/RestaurantContext';
-import { getAccountingData, exportAccountingData } from '../../services/accountingService';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { exportAccountingData, getAccountingData } from '../../services/accountingService';
 
 // Register ChartJS components
 ChartJS.register(
@@ -75,6 +76,8 @@ export default function Accounting() {
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
+  useOrderNotification();
+
   useEffect(() => {
     async function fetchData() {
       if (!restaurant?.id) return;
@@ -96,7 +99,7 @@ export default function Accounting() {
             end: new Date(dateRange.end)
           } : undefined
         );
-        
+
         // Update metrics immediately for better UX
         setMetrics(data.metrics);
         setTransactions(data.orders);
@@ -111,13 +114,13 @@ export default function Accounting() {
     // Fetch data immediately and set up interval for real-time updates
     fetchData();
     const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
-    
+
     return () => clearInterval(interval);
   }, [restaurant?.id, selectedPeriod, dateRange, orders]);
 
   const handleExport = async (format: string) => {
     if (!restaurant?.id) return;
-    
+
     setLoading(true);
     try {
       const blob = await exportAccountingData(
@@ -139,7 +142,7 @@ export default function Accounting() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       // Show success message
       alert('Export réussi !');
     } catch (error) {
@@ -192,7 +195,7 @@ export default function Accounting() {
                   <Filter className="h-4 w-4" />
                   <span>Filtres</span>
                 </button>
-                
+
                 {showFilters && (
                   <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border p-4 z-10">
                     <div className="space-y-4">
@@ -375,7 +378,7 @@ export default function Accounting() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">
                       {method === 'card' ? 'Carte bancaire' :
-                       method === 'cash' ? 'Espèces' : 'Apple Pay'}
+                        method === 'cash' ? 'Espèces' : 'Apple Pay'}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -414,11 +417,11 @@ export default function Accounting() {
             <div className="h-64">
               <Line
                 data={{
-                  labels: Object.keys(metrics.dailyRevenue || {}).map(date => 
+                  labels: Object.keys(metrics.dailyRevenue || {}).map(date =>
                     new Date(date).toLocaleDateString('fr-FR', {
                       day: 'numeric',
-                     month: 'short',
-                     year: '2-digit'
+                      month: 'short',
+                      year: '2-digit'
                     })
                   ),
                   datasets: [{
@@ -511,16 +514,16 @@ export default function Accounting() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {order?.paymentMethod === 'card' ? 'CB' :
-                           order?.paymentMethod === 'cash' ? 'ESP' : 'AP'}
+                            order?.paymentMethod === 'cash' ? 'ESP' : 'AP'}
                         </td>
                       </tr>
                     )) : (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                          Aucune transaction pour le moment
-                        </td>
-                      </tr>
-                    )}
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        Aucune transaction pour le moment
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

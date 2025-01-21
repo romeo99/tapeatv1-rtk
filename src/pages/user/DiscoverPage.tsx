@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useLoadScript } from '@react-google-maps/api';
-import { MapPin, Search, Map as MapIcon, List, ChevronRight, AlertCircle } from 'lucide-react';
-import { getCurrentLocation } from '../../services/locationService';
-import type { Location } from '../../services/locationService';
+import { AlertCircle, ChevronRight, List, Map as MapIcon, MapPin, Search } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../../components/layout/BottomNavigation';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import LocationSelector from '../../components/user/LocationSelector';
 import RestaurantCard from '../../components/user/RestaurantCard';
 import RestaurantMap from '../../components/user/RestaurantMap';
+import type { Location } from '../../services/locationService';
+import { getCurrentLocation } from '../../services/locationService';
 import { getNearbyRestaurants } from '../../services/restaurantService';
-import LoadingSpinner from '../../components/LoadingSpinner';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
 
@@ -29,9 +29,9 @@ export default function DiscoverPage() {
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [currentAddress, setCurrentAddress] = useState('à moins de 2 km');
   const [locationError, setLocationError] = useState<string | null>(null);
-  const lastLocationRef = useRef<{lat: number; lng: number} | null>(null);
+  const lastLocationRef = useRef<{ lat: number; lng: number } | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries
@@ -75,7 +75,7 @@ export default function DiscoverPage() {
         setLoading(false);
       }
     };
-    
+
     initializeLocation();
 
     const MIN_DISTANCE = 100; // Minimum distance in meters to trigger update
@@ -84,15 +84,15 @@ export default function DiscoverPage() {
 
     function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number) {
       const R = 6371e3; // Earth's radius in meters
-      const φ1 = lat1 * Math.PI/180;
-      const φ2 = lat2 * Math.PI/180;
-      const Δφ = (lat2-lat1) * Math.PI/180;
-      const Δλ = (lng2-lng1) * Math.PI/180;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lng2 - lng1) * Math.PI / 180;
 
-      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ/2) * Math.sin(Δλ/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
       return R * c;
     }
@@ -101,7 +101,7 @@ export default function DiscoverPage() {
     watchIdRef.current = navigator.geolocation.watchPosition(
       async (position) => {
         const { latitude: lat, longitude: lng } = position.coords;
-        
+
         // Skip if location hasn't changed significantly
         if (lastLocationRef.current) {
           const distance = calculateDistance(
@@ -119,19 +119,19 @@ export default function DiscoverPage() {
         // Debounce updates
         clearTimeout(debounceTimer);
         debounceTimer = window.setTimeout(async () => {
-        const geocoder = new google.maps.Geocoder();
-        const response = await geocoder.geocode({ location: { lat, lng } });
-        
-        if (response.results[0]) {
-          const location = {
-            lat,
-            lng,
-            address: response.results[0].formatted_address
-          };
-          setUserLocation(location);
-          setCurrentAddress(location.address);
-          await loadRestaurants(lat, lng);
-        }
+          const geocoder = new google.maps.Geocoder();
+          const response = await geocoder.geocode({ location: { lat, lng } });
+
+          if (response.results[0]) {
+            const location = {
+              lat,
+              lng,
+              address: response.results[0].formatted_address
+            };
+            setUserLocation(location);
+            setCurrentAddress(location.address);
+            await loadRestaurants(lat, lng);
+          }
         }, DEBOUNCE_DELAY);
       },
       (error) => {
@@ -189,7 +189,7 @@ export default function DiscoverPage() {
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-emerald-500" />
-              <LocationSelector 
+              <LocationSelector
                 currentLocation={currentAddress}
                 onLocationChange={handleLocationChange}
               />
@@ -231,7 +231,7 @@ export default function DiscoverPage() {
                 <section key={section.id} className="space-y-4">
                   <div className="flex items-center justify-between mb-4 pr-4">
                     <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
-                    <button 
+                    <button
                       onClick={() => navigate(`/restaurants?type=${section.id}`)}
                       className="text-emerald-500 text-sm font-medium flex items-center gap-1 whitespace-nowrap"
                     >
@@ -242,7 +242,7 @@ export default function DiscoverPage() {
                   <div className="flex overflow-x-auto hide-scrollbar gap-4 -mx-4 px-4 pb-2">
                     {sectionRestaurants.map((restaurant) => (
                       <div key={restaurant.id} className="flex-none w-[260px]">
-                        <RestaurantCard 
+                        <RestaurantCard
                           restaurant={restaurant}
                           variant="default"
                         />

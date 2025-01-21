@@ -1,8 +1,9 @@
+import { Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
-import { Save, Loader2 } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
 import AdminLayout from '../../components/admin/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
 import { updateRestaurant } from '../../services/restaurantService';
 import { uploadImage } from '../../services/uploadService';
 
@@ -24,6 +25,8 @@ export default function Settings() {
     }), {}),
     features: restaurant?.features || []
   });
+
+  useOrderNotification();
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -243,7 +246,7 @@ export default function Settings() {
                       {day.charAt(0).toUpperCase() + day.slice(1)}
                     </span>
                   </div>
-                  
+
                   <label className="flex items-center">
                     <input
                       type="checkbox"
@@ -325,7 +328,7 @@ export default function Settings() {
                   />
                   <span className="ml-2 text-sm text-gray-600">
                     {feature === 'dine_in' ? 'Sur place' :
-                     feature === 'takeaway' ? 'À emporter' : 'Livraison'}
+                      feature === 'takeaway' ? 'À emporter' : 'Livraison'}
                   </span>
                 </label>
               ))}

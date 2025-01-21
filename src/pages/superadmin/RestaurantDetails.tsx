@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Building2, MapPin, Phone, Mail, Clock, DollarSign, Users, Package, Star, ChevronLeft } from 'lucide-react';
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../config/firebase';
-import { Line } from 'react-chartjs-2';
-import SuperAdminLayout from '../../components/superadmin/SuperAdminLayout';
-import LoadingSpinner from '../../components/LoadingSpinner';
 import { useLoadScript } from '@react-google-maps/api';
+import { collection, getDocs } from 'firebase/firestore';
+import { ChevronLeft, Clock, DollarSign, Mail, MapPin, Package, Phone, Star } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import SuperAdminLayout from '../../components/superadmin/SuperAdminLayout';
+import { db } from '../../config/firebase';
 import { getRestaurant, updateRestaurant } from '../../services/restaurantService';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
@@ -106,8 +105,8 @@ export default function RestaurantDetails() {
         const stats = {
           totalOrders: ordersData.length,
           totalRevenue: ordersData.reduce((sum, order) => sum + (order.total || 0), 0),
-          averageOrderValue: ordersData.length > 0 
-            ? ordersData.reduce((sum, order) => sum + (order.total || 0), 0) / ordersData.length 
+          averageOrderValue: ordersData.length > 0
+            ? ordersData.reduce((sum, order) => sum + (order.total || 0), 0) / ordersData.length
             : 0,
           pendingOrders: ordersData.filter(o => o.status === 'pending').length,
           dailyRevenue: {},
@@ -157,9 +156,9 @@ export default function RestaurantDetails() {
         ...formData,
         openingHours: formData.openingHours
       });
-      
+
       setIsEditing(false);
-      
+
       // Reload restaurant data
       const updatedRestaurant = await getRestaurant(id!);
       setRestaurant(updatedRestaurant);
@@ -229,11 +228,10 @@ export default function RestaurantDetails() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{restaurant.name}</h1>
                 <div className="flex items-center gap-4 mt-1">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    restaurant.isOpen
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${restaurant.isOpen
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
-                  }`}>
+                    }`}>
                     {restaurant.isOpen ? 'Ouvert' : 'Fermé'}
                   </span>
                   <div className="flex items-center gap-1">
@@ -255,11 +253,10 @@ export default function RestaurantDetails() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                       ? 'border-emerald-500 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -372,9 +369,8 @@ export default function RestaurantDetails() {
                           ref={addressInputRef}
                           type="text"
                           defaultValue={formData.address}
-                          className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                            addressError ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${addressError ? 'border-red-500' : 'border-gray-300'
+                            }`}
                           placeholder="Entrez l'adresse du restaurant"
                           required
                         />
@@ -384,7 +380,7 @@ export default function RestaurantDetails() {
                         <p className="mt-1 text-sm text-red-500">{addressError}</p>
                       )}
                     </div>
-                    
+
                     <div>
                       <h3 className="text-sm font-medium text-gray-700 mb-2">Horaires d'ouverture</h3>
                       <div className="space-y-3">
@@ -392,14 +388,14 @@ export default function RestaurantDetails() {
                           <div key={day} className="flex items-center gap-4">
                             <div className="w-32">
                               <span className="text-sm font-medium text-gray-700">
-                                {day.charAt(0).toUpperCase() + day.slice(1)} 
+                                {day.charAt(0).toUpperCase() + day.slice(1)}
                               </span>
                             </div>
-                            
+
                             <label className="flex items-center">
                               <input
                                 type="checkbox"
-                                checked={!formData.openingHours[day]?.closed ?? true}
+                                checked={!formData.openingHours[day]?.closed}
                                 onChange={(e) => setFormData(prev => ({
                                   ...prev,
                                   openingHours: {
@@ -416,7 +412,7 @@ export default function RestaurantDetails() {
                               <span className="ml-2 text-sm text-gray-600">Ouvert</span>
                             </label>
 
-                            {(!formData.openingHours[day]?.closed ?? true) && (
+                            {(!formData.openingHours[day]?.closed) && (
                               <div className="flex items-center gap-2">
                                 <input
                                   type="time"
@@ -557,11 +553,10 @@ export default function RestaurantDetails() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveOrderTab(tab.id)}
-                      className={`py-4 px-6 font-medium text-sm ${
-                        activeOrderTab === tab.id
+                      className={`py-4 px-6 font-medium text-sm ${activeOrderTab === tab.id
                           ? 'border-b-2 border-emerald-500 text-emerald-600'
                           : 'text-gray-500 hover:text-gray-700'
-                      }`}
+                        }`}
                     >
                       {tab.label}
                       <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100">
@@ -583,11 +578,10 @@ export default function RestaurantDetails() {
                         </span>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="font-medium">{order.total.toFixed(2)} €</span>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {order.status}
                           </span>
                         </div>
@@ -602,8 +596,8 @@ export default function RestaurantDetails() {
                 {filteredOrders.length === 0 && (
                   <div className="p-8 text-center text-gray-500">
                     Aucune commande {activeOrderTab === 'pending' ? 'en attente' :
-                                   activeOrderTab === 'preparing' ? 'en préparation' :
-                                   'terminée'}
+                      activeOrderTab === 'preparing' ? 'en préparation' :
+                        'terminée'}
                   </div>
                 )}
               </div>

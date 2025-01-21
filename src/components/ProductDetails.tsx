@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { availableIngredients } from '../data/ingredients';
@@ -11,7 +11,6 @@ interface ProductDetailsProps {
     price: number;
     image: string;
     description?: string;
-    ingredients?: string[];
     ingredients?: Array<{
       id: string;
       name: string;
@@ -27,16 +26,16 @@ export default function ProductDetails({ product, onClose }: ProductDetailsProps
   const { menu, themeColor } = useRestaurantContext();
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [productIngredients, setProductIngredients] = useState<Array<{id: string; name: string; icon: string}>>([]);
+  const [productIngredients, setProductIngredients] = useState<Array<{ id: string; name: string; icon: string }>>([]);
   const [remarks, setRemarks] = useState('');
 
   useEffect(() => {
     const fullProduct = menu?.find(item => item.id === product.id);
     if (fullProduct?.ingredients) {
-      const ingredients = fullProduct.ingredients.map(id => {
+      const ingredients = fullProduct.ingredients.map((id: string) => {
         const ingredient = availableIngredients.find(ing => ing.id === id);
         return ingredient || null;
-      }).filter((ing): ing is NonNullable<typeof ing> => ing !== null);
+      }).filter((ing: { id: string, name: string, icon: string }): ing is NonNullable<typeof ing> => ing !== null);
       setProductIngredients(ingredients);
     }
   }, [product.id, menu]);
@@ -45,7 +44,6 @@ export default function ProductDetails({ product, onClose }: ProductDetailsProps
     // Ne rien faire si le produit n'est pas disponible
     if (product.status !== 'available') return;
     const cleanedRemarks = remarks && remarks.trim() !== '' ? remarks.trim() : null;
-    
 
     // Vibrate on mobile devices
     if (navigator.vibrate) {
@@ -54,12 +52,12 @@ export default function ProductDetails({ product, onClose }: ProductDetailsProps
 
     // Close modal immediately
     onClose();
-    
+
     // Add item to cart
     const excludedNames = excludedIngredients.length > 0 && productIngredients.length > 0
       ? productIngredients
-          .filter(ing => excludedIngredients.includes(ing.id))
-          .map(ing => ing.name)
+        .filter(ing => excludedIngredients.includes(ing.id))
+        .map(ing => ing.name)
       : undefined;
 
     addItem({
@@ -99,7 +97,7 @@ export default function ProductDetails({ product, onClose }: ProductDetailsProps
         <div className="p-4">
           <h2 className="text-xl font-medium mb-2">{product.name}</h2>
           <p className="text-lg mb-4" style={{ color: themeColor }}>{product.price.toFixed(2)} €</p>
-          
+
           <p className="text-gray-600 mb-6">
             {product.description || "Un délicieux plat préparé avec des ingrédients frais"}
           </p>
@@ -112,22 +110,16 @@ export default function ProductDetails({ product, onClose }: ProductDetailsProps
                   <button
                     key={`${product.id}-ingredient-${ingredient.id}`}
                     onClick={() => {
-                      setExcludedIngredients(prev => 
+                      setExcludedIngredients(prev =>
                         prev.includes(ingredient.id)
                           ? prev.filter(id => id !== ingredient.id)
                           : [...prev, ingredient.id]
                       );
                     }}
-                    className={`flex flex-col items-center p-2 rounded-xl transition-all ${
-                      excludedIngredients.includes(ingredient.id)
+                    className={`flex flex-col items-center p-2 rounded-xl transition-all ${excludedIngredients.includes(ingredient.id)
                         ? 'bg-red-50 text-red-500'
-                        : 'bg-gray-50'
-                    }`}
-                    style={!excludedIngredients.includes(ingredient.id) ? {
-                      ':hover': {
-                        backgroundColor: `${themeColor}10`
-                      }
-                    } : undefined}
+                        : `bg-gray-50 hover:bg-[${themeColor}10]`
+                      }`}
                   >
                     <span className="text-2xl mb-1">{ingredient.icon}</span>
                     <span className="text-xs text-center leading-tight">
@@ -169,10 +161,10 @@ export default function ProductDetails({ product, onClose }: ProductDetailsProps
           </div>
         </div>
       </div>
-      
+
       {/* Animation element */}
       {showAnimation && (
-        <div 
+        <div
           className="fixed w-32 h-32 rounded-xl bg-white shadow-xl z-[100] pointer-events-none left-1/2 top-1/2"
           style={{
             animation: 'addToCart 0.3s ease-in-out forwards',

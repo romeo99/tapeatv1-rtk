@@ -1,19 +1,19 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  collection, 
-  doc, 
-  query, 
-  where, 
-  onSnapshot, 
+import {
+  collection,
+  doc,
+  onSnapshot,
   orderBy,
-  updateDoc,
+  query,
   serverTimestamp,
+  updateDoc,
   writeBatch
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { useAuth } from './AuthContext';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { Restaurant, Category, MenuItem } from '../types/firebase';
+import { db } from '../config/firebase';
+import type { MenuItem, Restaurant } from '../types/firebase';
+import type { Category, } from '../types/index';
+import { useAuth } from './AuthContext';
 
 interface RestaurantContextType {
   restaurant: Restaurant | null;
@@ -65,7 +65,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!restaurantId) {
       setLoading(false);
-      setError('Restaurant ID is required'); 
+      setError('Restaurant ID is required');
       return;
     }
 
@@ -92,7 +92,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       // Listen to categories subcollection
       const categoriesRef = collection(db, 'restaurants', restaurantId, 'categories');
       const categoriesQuery = query(categoriesRef, orderBy('order'));
-      
+
       const unsubscribeCategories = onSnapshot(categoriesQuery, (snapshot) => {
         const categoriesData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -105,7 +105,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       // Listen to menuItems subcollection
       const menuRef = collection(db, 'restaurants', restaurantId, 'menuItems');
       const menuQuery = query(menuRef, orderBy('order', 'asc'));
-      
+
       const unsubscribeMenu = onSnapshot(menuQuery, (snapshot) => {
         const menuData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -136,7 +136,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
   const updateRestaurantInfo = async (data: Partial<Restaurant>) => {
     if (!restaurant?.id) throw new Error('Restaurant non trouvé');
-    
+
     const restaurantRef = doc(db, 'restaurants', restaurant.id);
     await updateDoc(restaurantRef, {
       ...data,
@@ -146,7 +146,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
   const updateOptions = async (options: any) => {
     if (!restaurant?.id) throw new Error('Restaurant non trouvé');
-    
+
     const restaurantRef = doc(db, 'restaurants', restaurant.id);
     await updateDoc(restaurantRef, {
       ...options,
@@ -157,7 +157,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   };
 
   const updateLocalMenu = (updatedItem: MenuItem) => {
-    setMenu(prev => prev.map(item => 
+    setMenu(prev => prev.map(item =>
       item.id === updatedItem.id ? updatedItem : item
     ));
   };

@@ -4,11 +4,12 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './index.css';
 
 // Check if we're in StackBlitz environment
-const isStackBlitz = window.location.hostname.includes('stackblitz') || 
-                    window.location.hostname.includes('webcontainer');
+const isStackBlitz = window.location.hostname.includes('stackblitz') ||
+  window.location.hostname.includes('webcontainer');
 
 // Only register service worker if not in StackBlitz and browser supports it
 if (!isStackBlitz && 'serviceWorker' in navigator) {
@@ -28,7 +29,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <FavoritesProvider>
-          <App />
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
         </FavoritesProvider>
       </AuthProvider>
     </BrowserRouter>

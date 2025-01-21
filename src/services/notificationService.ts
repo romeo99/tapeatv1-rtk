@@ -1,4 +1,4 @@
-import { doc, setDoc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc, serverTimestamp, collection } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export async function requestNotificationPermission(userId: string) {

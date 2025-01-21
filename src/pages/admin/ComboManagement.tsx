@@ -1,10 +1,11 @@
+import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
-import { deleteMenuItem } from '../../services/menuService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { deleteMenuItem } from '../../services/menuService';
 
 export default function ComboManagement() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export default function ComboManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useOrderNotification();
 
   // Filter only combos
   const combos = menu.filter(item => item.isCombo === true);

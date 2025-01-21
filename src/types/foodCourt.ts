@@ -1,3 +1,5 @@
+import { Order, OrderItem } from "./firebase";
+
 export interface FoodCourt {
   id: string;
   name: string;

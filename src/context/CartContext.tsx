@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useRestaurantContext } from './RestaurantContext';
 import { getActivePromotions } from '../services/promotionService';
 import type { Promotion } from '../types/firebase';
+import { useRestaurantContext } from './RestaurantContext';
 
 interface MenuOptions {
   drink?: string;
@@ -21,6 +21,8 @@ interface CartItem {
   excludedIngredients?: string[];
   menuOptions?: MenuOptions;
   isCombo?: boolean;
+  remarks?: string | null;
+  promotionLabel?: string;
 }
 
 interface CartContextType {
@@ -34,7 +36,7 @@ interface CartContextType {
   toggleCart: () => void;
   total: number;
   isFoodCourtOrder: boolean;
-  foodCourtId?: string;
+  foodCourtId?: string | null;
   scheduledTime: { date: string; time: string } | null;
   setScheduledTime: (time: { date: string; time: string } | null) => void;
 }
@@ -71,7 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const params = new URLSearchParams(location.search);
       const urlFoodCourtId = params.get('foodCourtId');
-      
+
       if (urlFoodCourtId) {
         setFoodCourtId(urlFoodCourtId);
         localStorage.setItem('foodCourtId', urlFoodCourtId);
@@ -91,7 +93,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Load active promotions
   useEffect(() => {
     if (!restaurant?.id) return;
-    
+
     const loadPromotions = async () => {
       try {
         const promotions = await getActivePromotions(restaurant.id);
@@ -146,9 +148,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     setItems(currentItems => {
-      const getItemKey = (item: any) => 
+      const getItemKey = (item: any) =>
         `${item.id}-${JSON.stringify(item.menuOptions)}-${JSON.stringify(item.excludedIngredients)}`;
-      
+
       const newItemKey = getItemKey(newItem);
       const existingItemIndex = currentItems.findIndex(item => getItemKey(item) === newItemKey);
       const initialQuantity = newItem.quantity || 1;
@@ -183,15 +185,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
               promotionLabel: `-${promotion.conditions.discountPercent}%`
             };
             break;
-             
+
           case 'free':
             // Si c'est le produit offert
             if (newItem.id === promotion.conditions.freeProductId) {
               // Vérifier si le produit principal est dans le panier
-              const mainProductInCart = currentItems.some(item => 
+              const mainProductInCart = currentItems.some(item =>
                 item.id === promotion.conditions.productId
               );
-              
+
               if (mainProductInCart) {
                 itemToAdd = {
                   ...newItem,
@@ -203,12 +205,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
               }
             }
             break;
-            
+
           case 'second_item_discount':
             // Trouver tous les articles identiques dans le panier
             const sameItems = currentItems.filter(item => item.id === newItem.id);
             const totalQuantity = sameItems.reduce((sum, item) => sum + item.quantity, 0) + initialQuantity;
-            
+
             // Appliquer la réduction sur les articles pairs
             if (totalQuantity >= 2) {
               const discountPercent = promotion.conditions.discountPercent || 0;
@@ -250,7 +252,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Trouver l'index exact de l'item à supprimer
       const itemIndex = currentItems.findIndex(item => {
         const sameId = item.id === id;
-        const sameOptions = menuOptions ? 
+        const sameOptions = menuOptions ?
           JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) :
           true;
         return sameId && sameOptions;
@@ -271,16 +273,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Trouver l'index de l'item à mettre à jour
       const itemIndex = currentItems.findIndex(item => {
         const sameId = item.id === id;
-        const sameOptions = menuOptions ? 
+        const sameOptions = menuOptions ?
           JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) :
           true;
         return sameId && sameOptions;
       });
 
       if (itemIndex === -1) return currentItems;
-      
+
       const item = currentItems[itemIndex];
-      
+
       // Chercher une promotion applicable
       const promotion = activePromotions.find(p => {
         return p.conditions.productId === item.id || p.conditions.freeProductId === item.id;
@@ -296,30 +298,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       // Mettre à jour la quantité avec gestion de la promotion
       let updatedItem = { ...item, quantity };
-      
+
       if (promotion) {
         switch (promotion.type) {
           case 'double':
             updatedItem.promotionLabel = quantity % 2 === 0 ? '1 offert' : undefined;
             break;
-            
+
           case 'free':
             if (item.id === promotion.conditions.freeProductId) {
               // Trouver le produit principal dans le panier
-              const mainProduct = currentItems.find(cartItem => 
+              const mainProduct = currentItems.find(cartItem =>
                 cartItem.id === promotion.conditions.productId
               );
-              
+
               // Vérifier si le produit principal est dans le panier
-              const mainProductInCart = currentItems.some(cartItem => 
+              const mainProductInCart = currentItems.some(cartItem =>
                 cartItem.id === promotion.conditions.productId
               );
-              
+
               if (mainProductInCart) {
                 // Un seul produit offert par produit principal
-                const freeQuantity = Math.min(1, mainProduct.quantity);
+                const freeQuantity = Math.min(1, mainProduct?.quantity ?? 0);
                 const paidQuantity = Math.max(0, quantity - freeQuantity);
-                
+
                 updatedItem = {
                   ...item,
                   quantity,
@@ -350,22 +352,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
-  const total = items && Array.isArray(items) 
+  const total = items && Array.isArray(items)
     ? items.reduce((sum, item) => {
-        if (item.promotionLabel === '1 offert') {
-          // Pour chaque paire d'articles, ne facturer qu'un seul
-          return sum + (Math.ceil(item.quantity / 2) * item.price);
-        }
-        if (item.promotionLabel?.includes('sur le 2ème')) {
-          const pairs = Math.floor(item.quantity / 2);
-          const remainingItems = item.quantity % 2;
-          const regularPrice = item.originalPrice || item.price;
-          const discountedPrice = item.price;
-          
-          return sum + (pairs * (regularPrice + discountedPrice)) + (remainingItems * regularPrice);
-        }
-        return sum + (item.price * item.quantity);
-      }, 0)
+      if (item.promotionLabel === '1 offert') {
+        // Pour chaque paire d'articles, ne facturer qu'un seul
+        return sum + (Math.ceil(item.quantity / 2) * item.price);
+      }
+      if (item.promotionLabel?.includes('sur le 2ème')) {
+        const pairs = Math.floor(item.quantity / 2);
+        const remainingItems = item.quantity % 2;
+        const regularPrice = item.originalPrice || item.price;
+        const discountedPrice = item.price;
+
+        return sum + (pairs * (regularPrice + discountedPrice)) + (remainingItems * regularPrice);
+      }
+      return sum + (item.price * item.quantity);
+    }, 0)
     : 0;
 
   return (
@@ -399,11 +401,12 @@ export function useCart() {
   return context;
 }
 
-const handleCheckout = () => {
+/* const handleCheckout = () => {
+  const navigate = useNavigate();
   toggleCart();
   const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
   const foodCourtId = localStorage.getItem('foodCourtId');
-  
+
   // Pour les commandes food court
   if (foodCourtId) {
     navigate(`/checkout?foodCourtId=${foodCourtId}`);
@@ -417,8 +420,8 @@ const handleCheckout = () => {
     return;
   }
 
-  navigate(isRegisterMode 
-    ? `/checkout?mode=register${foodCourtId ? `&foodCourtId=${foodCourtId}` : ''}&restaurantId=${restaurantId}` 
+  navigate(isRegisterMode
+    ? `/checkout?mode=register${foodCourtId ? `&foodCourtId=${foodCourtId}` : ''}&restaurantId=${restaurantId}`
     : `/checkout?restaurantId=${restaurantId}${foodCourtId ? `&foodCourtId=${foodCourtId}` : ''}`
   );
-};
+}; */

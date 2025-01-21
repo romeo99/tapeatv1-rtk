@@ -1,9 +1,10 @@
+import { AlertCircle, ChevronLeft, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Save, Loader2, AlertCircle } from 'lucide-react';
-import { useRestaurantContext } from '../../../context/RestaurantContext';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useRestaurantContext } from '../../../context/RestaurantContext';
+import useOrderNotification from '../../../hooks/useOrderNotification';
 import { updateRestaurant } from '../../../services/restaurantService';
 
 export default function BankingSettings() {
@@ -18,6 +19,8 @@ export default function BankingSettings() {
     accountHolder: restaurant?.bankInfo?.accountHolder || '',
     paymentSchedule: restaurant?.bankInfo?.paymentSchedule || 'weekly'
   });
+
+  useOrderNotification();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

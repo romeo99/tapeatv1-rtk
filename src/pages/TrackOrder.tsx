@@ -121,10 +121,6 @@ export default function TrackOrder() {
         step = 0;
         description = 'Votre commande a été refusée par le restaurant';
         break;
-      case 'cancelled':
-        step = 0;
-        description = 'Votre commande a été refusée par le restaurant';
-        break;
       case 'confirmed':
         step = 2;
         description = 'Le restaurant prépare votre commande';

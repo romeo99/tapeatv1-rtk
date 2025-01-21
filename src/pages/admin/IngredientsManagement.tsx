@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, AlertCircle, X } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
+import { AlertCircle, Plus, Search, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { searchIngredients } from '../../services/ingredientService';
-import { createIngredient, deleteIngredient, getIngredients } from '../../services/ingredientService';
+import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
+import { createIngredient, deleteIngredient, getIngredients, searchIngredients } from '../../services/ingredientService';
 
 interface Ingredient {
   id: string;
@@ -34,6 +34,8 @@ export default function IngredientsManagement() {
     icon: '🔍' // Icône par défaut pour les ingrédients personnalisés
   });
 
+  useOrderNotification();
+
   useEffect(() => {
     if (!restaurant?.id) return;
     loadIngredients();
@@ -54,12 +56,12 @@ export default function IngredientsManagement() {
 
   const handleSearch = async (query: string) => {
     setAddSearchQuery(query);
-    
+
     if (query.length < 2) {
       setSuggestions([]);
       return;
     }
-    
+
     try {
       const searchResults = searchIngredients(query);
       const newSuggestions = searchResults
@@ -102,7 +104,7 @@ export default function IngredientsManagement() {
       // Reset search and form state
       setSuggestions([]);
       setIsAdding(false);
-      
+
       // Reload ingredients
       await loadIngredients();
     } catch (err) {
@@ -133,17 +135,17 @@ export default function IngredientsManagement() {
         name: '',
         icon: '🔍'
       });
-      
+
       await createIngredient(restaurant.id, {
         id: customIngredient.name.toLowerCase().replace(/\s+/g, '-'),
         name: customIngredient.name,
         icon: customIngredient.icon
       });
-      
+
       setShowCustomForm(false);
       setSuggestions([]);
       setIsAdding(false);
-      
+
       await loadIngredients();
     } catch (error) {
       console.error('Error adding ingredient:', error);
@@ -208,7 +210,7 @@ export default function IngredientsManagement() {
 
           <div className="border-t">
             {ingredients
-              .filter(ing => 
+              .filter(ing =>
                 ing.name.toLowerCase().includes(searchQuery.toLowerCase())
               )
               .map((ingredient) => (
@@ -343,7 +345,7 @@ export default function IngredientsManagement() {
                         required
                       />
                     </div>
-                    
+
                     <div className="flex justify-end gap-3">
                       <button
                         type="button"

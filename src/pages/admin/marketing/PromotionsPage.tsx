@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { Edit2, Percent, Plus, Search, Tag, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Calendar, Percent, Tag, Trash2, Edit2 } from 'lucide-react';
-import { useRestaurantContext } from '../../../context/RestaurantContext';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
-import { getAllPromotions, deletePromotion } from '../../../services/promotionService';
+import { useRestaurantContext } from '../../../context/RestaurantContext';
+import useOrderNotification from '../../../hooks/useOrderNotification';
+import { deletePromotion, getAllPromotions } from '../../../services/promotionService';
 import type { Promotion } from '../../../types/firebase';
 
 export default function PromotionsPage() {
@@ -14,6 +15,8 @@ export default function PromotionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useOrderNotification();
 
   useEffect(() => {
     if (!restaurant?.id) return;
@@ -111,15 +114,14 @@ export default function PromotionsPage() {
                   <h3 className="font-medium text-lg">{promotion.name}</h3>
                   <p className="text-sm text-gray-500">{promotion.description}</p>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  promotion.status === 'active' 
-                    ? 'bg-green-100 text-green-800'
-                    : promotion.status === 'expired'
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${promotion.status === 'active'
+                  ? 'bg-green-100 text-green-800'
+                  : promotion.status === 'expired'
                     ? 'bg-red-100 text-red-800'
                     : 'bg-gray-100 text-gray-800'
-                }`}>
+                  }`}>
                   {promotion.status === 'active' ? 'Active' :
-                   promotion.status === 'expired' ? 'Expirée' : 'Inactive'}
+                    promotion.status === 'expired' ? 'Expirée' : 'Inactive'}
                 </span>
               </div>
 
@@ -128,10 +130,10 @@ export default function PromotionsPage() {
                   <Tag className="h-4 w-4" />
                   <span>
                     {promotion.type === 'double' ? '1 acheté = 2 offerts' :
-                     promotion.type === 'discount' ? `${promotion.conditions.discountPercent}% de réduction` :
-                     promotion.type === 'free' ? 'Produit offert' :
-                     promotion.type === 'second_item_discount' ? `${promotion.conditions.discountPercent}% sur le 2ème` :
-                     ''}
+                      promotion.type === 'discount' ? `${promotion.conditions.discountPercent}% de réduction` :
+                        promotion.type === 'free' ? 'Produit offert' :
+                          promotion.type === 'second_item_discount' ? `${promotion.conditions.discountPercent}% sur le 2ème` :
+                            ''}
                   </span>
                 </div>
               </div>
