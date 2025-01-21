@@ -19,6 +19,9 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const restaurantId = searchParams.get('restaurantId');
 
+  const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
+  const isInIframe = window.self !== window.top;
+
   // Redirect if no restaurant ID
   useEffect(() => {
     if (!restaurantId) {
@@ -157,10 +160,15 @@ export default function Checkout() {
       localStorage.removeItem('foodCourtId');
       localStorage.removeItem('deliveryInfo');
 
-      navigate('/order-confirmation', {
-        state: { orderId, foodCourtId },
-        replace: true
-      });
+      if (isRegisterMode || isInIframe) {
+        navigate(`/restaurant?restaurantId=${restaurantId}&mode=register`, { replace: true });
+      } else {
+        navigate('/order-confirmation', {
+          state: { orderId, foodCourtId },
+          replace: true
+        });
+      }
+
     } catch (error) {
       console.error('Error creating order:', error);
       setError(
@@ -214,10 +222,10 @@ export default function Checkout() {
                 onClick={() => setSelectedMethod(method)}
                 disabled={!isAllowed}
                 className={`p-3 sm:p-4 rounded-xl flex flex-col items-center gap-1 sm:gap-2 border-2 transition-colors ${selectedMethod === method
-                    ? 'bg-opacity-10'
-                    : isAllowed
-                      ? 'bg-white border-gray-200 hover:border-2'
-                      : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
+                  ? 'bg-opacity-10'
+                  : isAllowed
+                    ? 'bg-white border-gray-200 hover:border-2'
+                    : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
                   }`}
                 style={selectedMethod === method ? {
                   backgroundColor: `${themeColor}20`,
