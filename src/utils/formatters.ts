@@ -8,3 +8,7 @@ export function formatDistance(meters: number): string {
 export function formatCurrency(amount: number): string {
   return amount.toFixed(2) + ' €';
 }
+
+export function formatLogoUrlForMarker(restaurantId: string) {
+  return `https://${import.meta.env.VITE_AWS_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com/${restaurantId}-logo.png`;
+}

@@ -2,6 +2,7 @@ import { GoogleMap, InfoWindowF, MarkerF, useLoadScript } from '@react-google-ma
 import { ChevronRight, Crosshair, MapPin, Minus, Plus, Star } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatLogoUrlForMarker } from '../../utils/formatters';
 import LoadingSpinner from '../LoadingSpinner';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
@@ -160,23 +161,9 @@ export default function RestaurantMap({ restaurants, userLocation, onRestaurantC
               onClick={() => setSelectedRestaurant(restaurant)}
               options={{
                 icon: {
-                  url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="20" cy="20" r="19" fill="white" stroke="#10B981" stroke-width="2"/>
-        <circle cx="20" cy="20" r="16" fill="white"/>
-        <foreignObject x="6" y="6" width="28" height="28">
-          <div xmlns="http://www.w3.org/1999/xhtml" 
-               style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: white;">
-            <img src="${restaurant.logo || 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'}"
-                 style="width: 100%; height: 100%; object-fit: cover;"
-                 alt="${restaurant.name}"/>
-          </div>
-        </foreignObject>
-      </svg>
-    `)}`,
+                  url: formatLogoUrlForMarker(restaurant.id),
                   anchor: new google.maps.Point(20, 20),
                   scaledSize: new google.maps.Size(40, 40),
-
                 },
                 optimized: true,
                 zIndex: 1
