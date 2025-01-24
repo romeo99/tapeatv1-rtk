@@ -6,6 +6,7 @@ import { useRestaurantContext } from '../../context/RestaurantContext';
 import useOrderNotification from '../../hooks/useOrderNotification';
 import { updateRestaurant } from '../../services/restaurantService';
 import { uploadImage } from '../../services/uploadService';
+import { uploadToS3 } from '../../services/uploadToS3';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -62,6 +63,11 @@ export default function Settings() {
       }
       if (coverFile) {
         coverUrl = await uploadImage(coverFile, 'restaurants/covers');
+      }
+
+      //store logo in s3 database
+      if (logoFile && logoUrl) {
+        await uploadToS3(restaurant.id, logoUrl!);
       }
 
       await updateRestaurant(restaurant.id, {
@@ -321,7 +327,7 @@ export default function Settings() {
                     onChange={(e) => {
                       const features = e.target.checked
                         ? [...formData.features, feature]
-                        : formData.features.filter(f => f !== feature);
+                        : formData.features.filter((f: string) => f !== feature);
                       setFormData(prev => ({ ...prev, features }));
                     }}
                     className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
