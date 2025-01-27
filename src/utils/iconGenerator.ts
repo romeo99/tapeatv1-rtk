@@ -41,7 +41,7 @@ export const generateIcon = (restaurantId: string, src: string): Promise<File> =
             }, 'image/png');
 
             // Convertir en Blob et télécharger
-            canvas.toBlob((blob) => {
+            /* canvas.toBlob((blob) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -50,7 +50,7 @@ export const generateIcon = (restaurantId: string, src: string): Promise<File> =
                     link.click();
                     URL.revokeObjectURL(url); // Nettoyer l'URL
                 }
-            }, 'image/png');
+            }, 'image/png'); */
         };
 
         img.onerror = (error) => {
