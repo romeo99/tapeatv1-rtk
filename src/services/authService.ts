@@ -21,6 +21,7 @@ import {
 import { auth, db } from '../config/firebase';
 import { getCoordsFromAddress } from './locationService';
 import { generateImpersonationToken } from './superadminService';
+import { uploadToS3 } from './uploadToS3';
 
 interface RegisterData {
   email: string;
@@ -160,6 +161,7 @@ export async function registerRestaurant(data: RegisterRestaurantData) {
 
       // Commit all changes in batch
       await batch.commit();
+      await uploadToS3(user.uid, 'https://i.ibb.co/MsGnLJM/applogotapeat.png');
       return user;
     } catch (error) {
       // If something fails after user creation, delete the user
