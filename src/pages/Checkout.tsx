@@ -6,9 +6,13 @@ import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
+import { getApplicationFee } from '../services/superadminService';
 
 // Initialize Stripe
 const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxVuIegQhWgi0AvXL4NupqnQY0wDQPEo38AJi3wV9mrFdAzSLvFGXG00PttU7DHT');
+const APPLICATION_FEES = await getApplicationFee();
+const STRIPE_FEES = 0.035;
+const TOTAL_FEE = APPLICATION_FEES + STRIPE_FEES;
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -17,6 +21,9 @@ export default function Checkout() {
   const { themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  if (!user) {
+    window.location.href = '/signin?redirect=checkout';
+  }
 
   // Group items by restaurant
   const restaurantItems = items.reduce((acc, item) => {
@@ -52,6 +59,7 @@ export default function Checkout() {
       // Create checkout session
       const { data } = await createCheckoutSession({
         restaurants,
+        fees: TOTAL_FEE,
         successUrl: `${window.location.origin}/order-confirmation`,
         cancelUrl: `${window.location.origin}/checkout`,
       });
@@ -93,12 +101,8 @@ export default function Checkout() {
             <div key={restaurantId} className="bg-white rounded-lg shadow-sm mb-4 p-4">
               <div className="font-medium mb-3">Restaurant name: {items[0].restaurantName}</div>
               {items.map((item, index) => (
-                <div key={`${item.id}-${index}`} className="flex items-center gap-3 py-2 border-b last:border-b-0">
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                  />
+                <div key={`${item.id}-${index}`} className="flex items-center gap-3 py-2 ">
+                  <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{item.name}</div>
                     <div className="text-sm text-gray-500">Quantité: {item.quantity}</div>
@@ -108,10 +112,32 @@ export default function Checkout() {
               ))}
               <div className="flex justify-between mt-3 pt-3 border-t">
                 <div className="font-medium">Sous-total</div>
-                <div className="font-medium">${amount.toFixed(2)}</div>
+                <div className="font-medium">{amount.toFixed(2)}€</div>
               </div>
             </div>
           ))}
+          {(() => {
+            const subtotal = Object.values(restaurantItems).reduce((acc, { amount }) => acc + amount, 0);
+            const serviceFees = subtotal * TOTAL_FEE;
+            const total = subtotal + serviceFees;
+
+            return (
+              <div className="mt-6 p-4 bg-white rounded-lg shadow">
+                <div className="flex justify-between">
+                  <div className="font-medium">Sous-total total</div>
+                  <div className="font-medium">{subtotal.toFixed(2)}€</div>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <div className="text-gray-600">Frais de service</div>
+                  <div className="text-gray-600">{serviceFees.toFixed(2)}€</div>
+                </div>
+                <div className="flex justify-between mt-3 pt-3 border-t">
+                  <div className="font-semibold text-lg">Total</div>
+                  <div className="font-semibold text-lg">{total.toFixed(2)}€</div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="sticky bottom-0 left-0 right-0 pb-safe bg-gray-50 pt-2">

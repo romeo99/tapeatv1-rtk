@@ -18,6 +18,7 @@ interface CartItem {
 
 interface PaymentSessionRestaurant {
   restaurantId: string;
+  stripeAccountId: string;
   amount: number;
   items: CartItem[];
 }
@@ -41,7 +42,24 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
   const userId = context.auth.uid;
 
   try {
-    // Create payment session in Firestore
+    // Validate all restaurants first
+    await Promise.all(
+      restaurants.map(async (restaurant: { items: any[]; restaurantId: string; amount: any; stripeAccountId: any }) => {
+        const restaurantRef = db.doc('restaurants/' + restaurant.restaurantId);
+        const restaurantDoc = await restaurantRef.get();
+
+        if (!restaurantDoc.exists) {
+          throw new functions.https.HttpsError('not-found', `Restaurant ${restaurant.restaurantId} not found`);
+        }
+        const data = restaurantDoc.data();
+        if (!data?.stripeAccountId) {
+          throw new functions.https.HttpsError('failed-precondition', `Restaurant ${restaurant.restaurantId} is not setup for payments`);
+        }
+        // Add stripeAccountId to the restaurant data for later use
+        restaurant.stripeAccountId = data.stripeAccountId;
+      }),
+    );
+
     const paymentSessionRef = db.collection('paymentSessions').doc();
     const paymentSession: PaymentSession = {
       id: paymentSessionRef.id,
@@ -62,7 +80,9 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
       mode: 'payment',
       success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
-      customer_email: context.auth.token.email,
+      payment_intent_data: {
+        transfer_group: paymentSessionRef.id,
+      },
       metadata: {
         paymentSessionId: paymentSessionRef.id,
         userId,
@@ -97,46 +117,85 @@ export const handleStripeWebhook = functions.https.onRequest(async (req, res) =>
   const sig = req.headers['stripe-signature'];
   const endpointSecret = functions.config().stripe.webhook_secret;
 
+  if (!sig || !endpointSecret) {
+    console.error('Missing stripe signature or endpoint secret');
+    res.status(400).send('Missing stripe signature or endpoint secret');
+    return;
+  }
+
   try {
-    const event = stripe.webhooks.constructEvent(req.rawBody, sig!, endpointSecret);
+    const event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const { paymentSessionId } = session.metadata!;
 
-      // Update payment session status
+      // Ensure idempotency - check if payment was already processed
       const paymentSessionRef = db.collection('paymentSessions').doc(paymentSessionId);
-      const paymentSession = (await paymentSessionRef.get()).data() as PaymentSession;
+      const paymentSessionSnap = await paymentSessionRef.get();
+      const paymentSession = paymentSessionSnap.data() as PaymentSession;
 
-      // Create orders for each restaurant
-      const orderPromises = paymentSession.restaurants.map(async (restaurant) => {
-        const orderRef = db.collection('orders').doc();
-        const order = {
-          id: orderRef.id,
-          userId: paymentSession.userId,
-          restaurantId: restaurant.restaurantId,
-          items: restaurant.items,
-          amount: restaurant.amount,
-          status: 'pending',
-          paymentSessionId,
-          createdAt: admin.firestore.Timestamp.now(),
-          updatedAt: admin.firestore.Timestamp.now(),
-        };
-        return orderRef.set(order);
-      });
+      if (!paymentSessionSnap.exists) {
+        throw new Error('Payment session not found');
+      }
 
-      await Promise.all([
-        paymentSessionRef.update({
+      if (paymentSession.status === 'completed') {
+        console.log('Payment already processed, skipping');
+        res.json({ received: true });
+        return;
+      }
+
+      // Start a transaction to ensure atomic updates
+      await db.runTransaction(async (transaction) => {
+        // Update payment session status first
+        transaction.update(paymentSessionRef, {
           status: 'completed',
           updatedAt: admin.firestore.Timestamp.now(),
+        });
+
+        // Create orders for each restaurant
+        const orderRefs = paymentSession.restaurants.map((restaurant) => {
+          const orderRef = db.collection('orders').doc();
+          const order = {
+            id: orderRef.id,
+            userId: paymentSession.userId,
+            restaurantId: restaurant.restaurantId,
+            items: restaurant.items,
+            amount: restaurant.amount,
+            status: 'pending',
+            paymentSessionId,
+            createdAt: admin.firestore.Timestamp.now(),
+            updatedAt: admin.firestore.Timestamp.now(),
+          };
+          transaction.set(orderRef, order);
+          return orderRef;
+        });
+
+        return orderRefs;
+      });
+
+      // After transaction succeeds, process Stripe transfers
+      await Promise.all(
+        paymentSession.restaurants.map(async (restaurant) => {
+          try {
+            await stripe.transfers.create({
+              amount: Math.round(restaurant.amount * 100),
+              currency: 'eur',
+              destination: restaurant.stripeAccountId,
+              transfer_group: paymentSessionId,
+            });
+          } catch (error) {
+            console.error(`Failed to transfer to restaurant ${restaurant.restaurantId}:`, error);
+            // Consider adding a retry mechanism or notification system here
+          }
         }),
-        ...orderPromises,
-      ]);
+      );
     }
 
     res.json({ received: true });
   } catch (error: any) {
     console.error('Webhook error:', error);
-    res.status(400).send(`Webhook Error: ${error.message}`);
+    // Don't expose internal error details in production
+    res.status(400).send('Webhook Error');
   }
 });

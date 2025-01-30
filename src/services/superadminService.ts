@@ -1,29 +1,11 @@
-import { 
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  sendPasswordResetEmail,
-  createUserWithEmailAndPassword,
-  updateProfile
-} from 'firebase/auth';
-import { 
-  doc, 
-  getDoc,
-  getDocs,
-  collection,
-  query,
-  where,
-  deleteDoc,
-  serverTimestamp,
-  updateDoc,
-  setDoc,
-  writeBatch
-} from 'firebase/firestore';
+import { signInWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, getDoc, getDocs, collection, query, where, deleteDoc, serverTimestamp, updateDoc, setDoc, writeBatch } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 
 export async function signInAsSuperAdmin(email: string, password: string) {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
+
     // Verify superadmin role
     const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
     if (!userDoc.exists() || userDoc.data().role !== 'superadmin') {
@@ -41,27 +23,21 @@ export async function signInAsSuperAdmin(email: string, password: string) {
   }
 }
 
-export async function createSuperAdmin(data: {
-  email: string;
-  password: string;
-  displayName: string;
-}) {
+export async function createSuperAdmin(data: { email: string; password: string; displayName: string }) {
   try {
     // Check if superadmin already exists
-    const superadminQuery = await getDocs(
-      query(collection(db, 'users'), where('role', '==', 'superadmin'))
-    );
-    
+    const superadminQuery = await getDocs(query(collection(db, 'users'), where('role', '==', 'superadmin')));
+
     if (!superadminQuery.empty) {
       throw new Error('Un compte SuperAdmin existe déjà');
     }
 
     // Create user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    
+
     // Update profile
     await updateProfile(userCredential.user, {
-      displayName: data.displayName
+      displayName: data.displayName,
     });
 
     // Create user document
@@ -72,13 +48,13 @@ export async function createSuperAdmin(data: {
       role: 'superadmin',
       status: 'active',
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
 
     // Mark setup as complete
     await setDoc(doc(db, 'settings', 'superadmin'), {
       setupComplete: true,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
 
     return userCredential.user;
@@ -95,14 +71,14 @@ export async function getAllRestaurants() {
   try {
     const restaurantsRef = collection(db, 'restaurants');
     const snapshot = await getDocs(restaurantsRef);
-    
-    const restaurants = snapshot.docs.map(doc => {
+
+    const restaurants = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
-      id: doc.id,
-      ...data,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date()
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
       };
     });
 
@@ -117,12 +93,12 @@ export async function getAllUsers() {
   try {
     const usersRef = collection(db, 'users');
     const snapshot = await getDocs(usersRef);
-    
-    return snapshot.docs.map(doc => ({
+
+    return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
+      updatedAt: doc.data().updatedAt?.toDate(),
     }));
   } catch (error) {
     console.error('Error getting users:', error);
@@ -140,7 +116,7 @@ export async function deleteRestaurant(restaurantId: string) {
     for (const subcollection of subcollections) {
       const querySnapshot = await getDocs(collection(db, 'restaurants', restaurantId, subcollection));
       const batch = writeBatch(db);
-      querySnapshot.docs.forEach(doc => {
+      querySnapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
       await batch.commit();
@@ -170,7 +146,7 @@ export async function resetUserPassword(userId: string) {
 
     const userEmail = userDoc.data().email;
     if (!userEmail) {
-      throw new Error('Email de l\'utilisateur introuvable');
+      throw new Error("Email de l'utilisateur introuvable");
     }
 
     await sendPasswordResetEmail(auth, userEmail);
@@ -185,7 +161,7 @@ export async function updateRestaurantStatus(restaurantId: string, isOpen: boole
     const restaurantRef = doc(db, 'restaurants', restaurantId);
     await updateDoc(restaurantRef, {
       isOpen,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
   } catch (error) {
     console.error('Error updating restaurant status:', error);
@@ -198,7 +174,7 @@ export async function updateUserStatus(userId: string, status: 'active' | 'inact
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, {
       status,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -218,8 +194,8 @@ export async function generateImpersonationToken(restaurantId: string): Promise<
     const token = {
       restaurantId,
       createdAt: Date.now(),
-      expiresAt: Date.now() + (2 * 60 * 60 * 1000), // 2 hours
-      type: 'impersonation'
+      expiresAt: Date.now() + 2 * 60 * 60 * 1000, // 2 hours
+      type: 'impersonation',
     };
 
     // Store token in Firestore
@@ -227,7 +203,7 @@ export async function generateImpersonationToken(restaurantId: string): Promise<
     await setDoc(tokenRef, {
       ...token,
       id: tokenRef.id,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
 
     return tokenRef.id;
@@ -267,17 +243,69 @@ export async function impersonateRestaurant(restaurantId: string, navigate: any)
     const restaurantData = restaurantDoc.data();
 
     // Store impersonation data
-    localStorage.setItem('impersonationData', JSON.stringify({
-      restaurantId,
-      restaurantName: restaurantData.name,
-      email: restaurantData.email,
-      expiresAt: Date.now() + (2 * 60 * 60 * 1000) // 2 hours
-    }));
+    localStorage.setItem(
+      'impersonationData',
+      JSON.stringify({
+        restaurantId,
+        restaurantName: restaurantData.name,
+        email: restaurantData.email,
+        expiresAt: Date.now() + 2 * 60 * 60 * 1000, // 2 hours
+      }),
+    );
 
     // Open admin dashboard in new tab
     window.open('/admin', '_blank');
   } catch (error) {
     console.error('Error impersonating restaurant:', error);
+    throw error;
+  }
+}
+
+interface ApplicationFeeSettings {
+  value: number;
+  updatedAt?: Date;
+  updatedBy?: string;
+}
+
+export async function getApplicationFee(): Promise<number> {
+  try {
+    const settingsRef = doc(db, 'settings', 'applicationFee');
+    const settingsDoc = await getDoc(settingsRef);
+    
+    if (!settingsDoc.exists()) {
+      console.warn('Application fee settings not found, using default value of 1%');
+      return 0.01; // Default to 1%
+    }
+
+    const feeSettings = settingsDoc.data() as ApplicationFeeSettings;
+    
+    // Validate fee value
+    if (typeof feeSettings.value !== 'number' || feeSettings.value < 0 || feeSettings.value > 1) {
+      console.error('Invalid application fee value:', feeSettings.value);
+      return 0.01; // Default to 1% if invalid
+    }
+
+    return feeSettings.value;
+  } catch (error) {
+    console.error('Error getting application fee:', error);
+    return 0.01; // Default to 1% on error
+  }
+}
+
+export async function updateApplicationFee(newFee: number, userId: string): Promise<void> {
+  if (typeof newFee !== 'number' || newFee < 0 || newFee > 1) {
+    throw new Error('Invalid fee value. Must be between 0 and 1');
+  }
+
+  try {
+    const settingsRef = doc(db, 'settings', 'applicationFee');
+    await setDoc(settingsRef, {
+      value: newFee,
+      updatedAt: serverTimestamp(),
+      updatedBy: userId
+    });
+  } catch (error) {
+    console.error('Error updating application fee:', error);
     throw error;
   }
 }
