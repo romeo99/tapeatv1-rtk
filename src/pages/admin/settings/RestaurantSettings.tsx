@@ -7,6 +7,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import { useRestaurantContext } from '../../../context/RestaurantContext';
 import useOrderNotification from '../../../hooks/useOrderNotification';
 import { updateRestaurant, uploadRestaurantImage } from '../../../services/restaurantService';
+import { uploadToS3 } from '../../../services/uploadToS3';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
 
@@ -135,6 +136,11 @@ export default function RestaurantSettings() {
       }
       if (coverFile) {
         coverUrl = await uploadRestaurantImage(restaurant.id, coverFile, 'cover');
+      }
+
+      //store logo in s3 database
+      if (logoFile && logoUrl) {
+        await uploadToS3(restaurant.id, logoUrl!);
       }
 
       await updateRestaurant(restaurant.id, {
