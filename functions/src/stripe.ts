@@ -38,7 +38,7 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
 
-  const { restaurants, successUrl, cancelUrl } = data;
+  const { restaurants, successUrl, cancelUrl, fees } = data;
   const userId = context.auth.uid;
 
   try {
@@ -87,19 +87,33 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
         paymentSessionId: paymentSessionRef.id,
         userId,
       },
-      line_items: restaurants.flatMap((restaurant: { items: any[] }) =>
-        restaurant.items.map((item: { name: any; image: any; price: number; quantity: any }) => ({
+      line_items: [
+        ...restaurants.flatMap((restaurant: { items: any[] }) =>
+          restaurant.items.map((item: { name: any; image: any; price: number; quantity: any }) => ({
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: item.name,
+                images: [item.image],
+              },
+              unit_amount: Math.round(item.price * 100), // Convert to cents
+            },
+            quantity: item.quantity,
+          })),
+        ),
+        // Add service fees as a separate line item
+        {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: item.name,
-              images: [item.image],
+              name: 'Frais de service',
+              description: 'Frais de service et de traitement',
             },
-            unit_amount: Math.round(item.price * 100), // Convert to cents
+            unit_amount: Math.round(restaurants.reduce((total: number, restaurant: any) => total + restaurant.amount, 0) * fees * 100), // Convert to cents
           },
-          quantity: item.quantity,
-        })),
-      ),
+          quantity: 1,
+        },
+      ],
     });
 
     // Update payment session with checkout session ID

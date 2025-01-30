@@ -10,9 +10,7 @@ import { getApplicationFee } from '../services/superadminService';
 
 // Initialize Stripe
 const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxVuIegQhWgi0AvXL4NupqnQY0wDQPEo38AJi3wV9mrFdAzSLvFGXG00PttU7DHT');
-const APPLICATION_FEES = await getApplicationFee();
-const STRIPE_FEES = 0.035;
-const TOTAL_FEE = APPLICATION_FEES + STRIPE_FEES;
+const TOTAL_FEE = await getApplicationFee();
 
 export default function Checkout() {
   const navigate = useNavigate();
