@@ -5,12 +5,11 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getApplicationFee } from '../services/superadminService';
 
 // Initialize Stripe
 const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxVuIegQhWgi0AvXL4NupqnQY0wDQPEo38AJi3wV9mrFdAzSLvFGXG00PttU7DHT');
-const TOTAL_FEE = await getApplicationFee();
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -19,6 +18,21 @@ export default function Checkout() {
   const { themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [applicationFee, setApplicationFee] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        const fee = await getApplicationFee();
+        setApplicationFee(fee);
+      } catch (err) {
+        setError('Failed to fetch application fee');
+        console.error('Error fetching application fee:', err);
+      }
+    };
+    fetchFee();
+  }, []);
+
   if (!user) {
     window.location.href = '/signin?redirect=checkout';
   }
@@ -57,7 +71,7 @@ export default function Checkout() {
       // Create checkout session
       const { data } = await createCheckoutSession({
         restaurants,
-        fees: TOTAL_FEE,
+        fees: applicationFee,
         successUrl: `${window.location.origin}/order-confirmation`,
         cancelUrl: `${window.location.origin}/checkout`,
       });
@@ -116,7 +130,7 @@ export default function Checkout() {
           ))}
           {(() => {
             const subtotal = Object.values(restaurantItems).reduce((acc, { amount }) => acc + amount, 0);
-            const serviceFees = subtotal * TOTAL_FEE;
+            const serviceFees = subtotal * applicationFee;
             const total = subtotal + serviceFees;
 
             return (
