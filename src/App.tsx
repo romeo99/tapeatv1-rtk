@@ -67,6 +67,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import DeliveryTracking from './pages/driver/DeliveryTracking';
 import DriverDashboard from './pages/driver/DriverDashboard';
+import StripeConnect from './pages/admin/settings/stripe-connect';
 
 export default function App() {
   const navigate = useNavigate();
@@ -202,6 +203,7 @@ export default function App() {
                           <Route path="/settings/theme" element={<ThemeSettings />} />
                           <Route path="/settings/banking" element={<BankingSettings />} />
                           <Route path="/settings/profile" element={<ProfileSettings />} />
+                          <Route path="/settings/stripe-connect" element={<StripeConnect />} />
                           <Route path="/support" element={<Support />} />
                         </Routes>
                       </ProtectedRoute>
@@ -209,12 +211,15 @@ export default function App() {
                   />
 
                   {/* Routes driver */}
-                  <Route path="/driver/*" element={
-                    <Routes>
-                      <Route path="/" element={<DriverDashboard />} />
-                      <Route path="/delivery/:orderId" element={<DeliveryTracking />} />
-                    </Routes>
-                  } />
+                  <Route
+                    path="/driver/*"
+                    element={
+                      <Routes>
+                        <Route path="/" element={<DriverDashboard />} />
+                        <Route path="/delivery/:orderId" element={<DeliveryTracking />} />
+                      </Routes>
+                    }
+                  />
                 </Routes>
               </Suspense>
             </OrderProvider>

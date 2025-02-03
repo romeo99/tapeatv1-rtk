@@ -127,6 +127,58 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
   }
 });
 
+export const createStripeConnectAccount = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  const { restaurantId } = data;
+  if (!restaurantId) {
+    throw new functions.https.HttpsError('invalid-argument', 'Restaurant ID is required');
+  }
+
+  try {
+    // Get restaurant data from Firestore
+    const restaurantDoc = await db.doc(`restaurants/${restaurantId}`).get();
+    if (!restaurantDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Restaurant not found');
+    }
+
+    const restaurantData = restaurantDoc.data();
+    
+    // Create a Stripe Connect account
+    const account = await stripe.accounts.create({
+      type: 'express',
+      country: 'FR', // Assuming the restaurant is in France
+      email: restaurantData?.email,
+      business_type: 'company',
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+    });
+
+    // Update restaurant document with Stripe account ID
+    await db.doc(`restaurants/${restaurantId}`).update({
+      stripeAccountId: account.id,
+      stripeAccountStatus: 'pending'
+    });
+
+    // Create an account link for onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `${functions.config().app.url}/admin/settings/stripe-connect?refresh=true`,
+      return_url: `${functions.config().app.url}/admin/settings/stripe-connect?success=true`,
+      type: 'account_onboarding',
+    });
+
+    return { url: accountLink.url };
+  } catch (error) {
+    console.error('Error creating Stripe Connect account:', error);
+    throw new functions.https.HttpsError('internal', 'Error creating Stripe Connect account');
+  }
+});
+
 export const handleStripeWebhook = functions.https.onRequest(async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = functions.config().stripe.webhook_secret;
