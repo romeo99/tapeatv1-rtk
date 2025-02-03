@@ -2,6 +2,8 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
 
+// Import all stripe functions
+
 admin.initializeApp();
 
 // Configure email transporter
@@ -11,13 +13,13 @@ const transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: functions.config().smtp?.user || process.env.SMTP_USER,
-    pass: functions.config().smtp?.pass || process.env.SMTP_PASS
-  }
+    pass: functions.config().smtp?.pass || process.env.SMTP_PASS,
+  },
 });
 
 export const sendVerificationCode = functions.https.onCall(async (data, context) => {
   const { email } = data;
-  
+
   if (!email) {
     throw new functions.https.HttpsError('invalid-argument', 'Email is required');
   }
@@ -25,13 +27,17 @@ export const sendVerificationCode = functions.https.onCall(async (data, context)
   try {
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store code in Firestore with expiration
-    await admin.firestore().collection('verificationCodes').doc(email).set({
-      code,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 10 * 60 * 1000) // 10 minutes
-    });
+    await admin
+      .firestore()
+      .collection('verificationCodes')
+      .doc(email)
+      .set({
+        code,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 10 * 60 * 1000), // 10 minutes
+      });
 
     // Send verification email
     await transporter.sendMail({
@@ -47,7 +53,7 @@ export const sendVerificationCode = functions.https.onCall(async (data, context)
           </div>
           <p style="color: #6B7280; margin-top: 20px;">Ce code expirera dans 10 minutes.</p>
         </div>
-      `
+      `,
     });
 
     return { success: true };
@@ -59,14 +65,14 @@ export const sendVerificationCode = functions.https.onCall(async (data, context)
 
 export const verifyCode = functions.https.onCall(async (data, context) => {
   const { email, code } = data;
-  
+
   if (!email || !code) {
     throw new functions.https.HttpsError('invalid-argument', 'Email and code are required');
   }
 
   try {
     const codeDoc = await admin.firestore().collection('verificationCodes').doc(email).get();
-    
+
     if (!codeDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Code not found');
     }
@@ -95,3 +101,5 @@ export const verifyCode = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('internal', 'Error verifying code');
   }
 });
+
+export * from './stripe';

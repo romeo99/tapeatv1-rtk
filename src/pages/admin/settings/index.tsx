@@ -32,6 +32,13 @@ const settingsMenus = [
     path: '/admin/settings/theme'
   },
   {
+    id: 'stripe-connect',
+    name: 'Stripe Connect',
+    description: 'Configurer votre compte de paiement Stripe',
+    icon: CreditCard,
+    path: '/admin/settings/stripe-connect'
+  },
+  {
     id: 'banking',
     name: 'Informations bancaires',
     description: 'RIB et informations de versement',
