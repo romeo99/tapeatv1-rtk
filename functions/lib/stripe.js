@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleStripeWebhook = exports.createCheckoutSession = void 0;
+exports.handleStripeWebhook = exports.createStripeConnectAccount = exports.createCheckoutSession = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
@@ -115,6 +115,51 @@ exports.createCheckoutSession = functions.https.onCall(async (data, context) => 
     catch (error) {
         console.error('Error creating checkout session:', error);
         throw new functions.https.HttpsError('internal', 'Unable to create checkout session');
+    }
+});
+exports.createStripeConnectAccount = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const { restaurantId } = data;
+    if (!restaurantId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Restaurant ID is required');
+    }
+    try {
+        // Get restaurant data from Firestore
+        const restaurantDoc = await db.doc(`restaurants/${restaurantId}`).get();
+        if (!restaurantDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'Restaurant not found');
+        }
+        const restaurantData = restaurantDoc.data();
+        // Create a Stripe Connect account
+        const account = await stripe.accounts.create({
+            type: 'express',
+            country: 'FR',
+            email: restaurantData === null || restaurantData === void 0 ? void 0 : restaurantData.email,
+            business_type: 'company',
+            capabilities: {
+                card_payments: { requested: true },
+                transfers: { requested: true },
+            },
+        });
+        // Update restaurant document with Stripe account ID
+        await db.doc(`restaurants/${restaurantId}`).update({
+            stripeAccountId: account.id,
+            stripeAccountStatus: 'pending'
+        });
+        // Create an account link for onboarding
+        const accountLink = await stripe.accountLinks.create({
+            account: account.id,
+            refresh_url: `${functions.config().app.url}/admin/settings/stripe-connect?refresh=true`,
+            return_url: `${functions.config().app.url}/admin/settings/stripe-connect?success=true`,
+            type: 'account_onboarding',
+        });
+        return { url: accountLink.url };
+    }
+    catch (error) {
+        console.error('Error creating Stripe Connect account:', error);
+        throw new functions.https.HttpsError('internal', 'Error creating Stripe Connect account');
     }
 });
 exports.handleStripeWebhook = functions.https.onRequest(async (req, res) => {

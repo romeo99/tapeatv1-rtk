@@ -22,12 +22,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyCode = exports.sendVerificationCode = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const nodemailer = __importStar(require("nodemailer"));
+// Import all stripe functions
 admin.initializeApp();
 // Configure email transporter
 const transporter = nodemailer.createTransport({
@@ -36,8 +40,8 @@ const transporter = nodemailer.createTransport({
     secure: false,
     auth: {
         user: ((_a = functions.config().smtp) === null || _a === void 0 ? void 0 : _a.user) || process.env.SMTP_USER,
-        pass: ((_b = functions.config().smtp) === null || _b === void 0 ? void 0 : _b.pass) || process.env.SMTP_PASS
-    }
+        pass: ((_b = functions.config().smtp) === null || _b === void 0 ? void 0 : _b.pass) || process.env.SMTP_PASS,
+    },
 });
 exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
     const { email } = data;
@@ -48,10 +52,14 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
         // Generate 6-digit code
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         // Store code in Firestore with expiration
-        await admin.firestore().collection('verificationCodes').doc(email).set({
+        await admin
+            .firestore()
+            .collection('verificationCodes')
+            .doc(email)
+            .set({
             code,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 10 * 60 * 1000) // 10 minutes
+            expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 10 * 60 * 1000), // 10 minutes
         });
         // Send verification email
         await transporter.sendMail({
@@ -67,7 +75,7 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
           </div>
           <p style="color: #6B7280; margin-top: 20px;">Ce code expirera dans 10 minutes.</p>
         </div>
-      `
+      `,
         });
         return { success: true };
     }
@@ -107,4 +115,5 @@ exports.verifyCode = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'Error verifying code');
     }
 });
+__exportStar(require("./stripe"), exports);
 //# sourceMappingURL=index.js.map
