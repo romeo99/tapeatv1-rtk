@@ -98,11 +98,11 @@ export default function Menu() {
                 console.error(`Error loading restaurant ${r.restaurantId}:`, err);
                 return null;
               }
-            })
+            }),
           );
 
           // Filter out failed loads
-          const validRestaurants = restaurantsData.filter(r => r !== null);
+          const validRestaurants = restaurantsData.filter((r) => r !== null);
           setFoodCourtRestaurants(validRestaurants);
         }
       } catch (err) {
@@ -206,7 +206,7 @@ export default function Menu() {
     if (activePromotions.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide(current => (current + 1) % activePromotions.length);
+      setCurrentSlide((current) => (current + 1) % activePromotions.length);
     }, 5000); // Change toutes les 5 secondes
 
     return () => clearInterval(interval);
@@ -223,7 +223,8 @@ export default function Menu() {
     // Add restaurantId to item for food court orders
     const itemWithRestaurant = {
       ...item,
-      restaurantId: restaurant?.id
+      restaurantId: restaurant?.id,
+      restaurantName: restaurant?.name,
     };
 
     // Vibrate on mobile devices
@@ -268,13 +269,10 @@ export default function Menu() {
     );
   }
 
-  const filteredItems = activeCategory && menuItems ?
-    menuItems.filter(item => item.categoryId === activeCategory) :
-    [];
+  const filteredItems = activeCategory && menuItems ? menuItems.filter((item) => item.categoryId === activeCategory) : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* Restaurant closed overlay */}
       {!isOpen && !loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -283,27 +281,17 @@ export default function Menu() {
               <Power className="h-8 w-8 text-red-600" />
             </div>
             <h2 className="text-xl font-bold mb-2">Restaurant fermé</h2>
-            <p className="text-gray-600">
-              Désolé, le restaurant est actuellement fermé. Veuillez revenir plus tard.
-            </p>
+            <p className="text-gray-600">Désolé, le restaurant est actuellement fermé. Veuillez revenir plus tard.</p>
           </div>
         </div>
       )}
 
-      <MenuHeader
-        isFoodCourt={!!foodCourtId}
-        restaurants={foodCourtRestaurants}
-        onRestaurantSelect={(id) => navigate(`/menu?restaurantId=${id}&foodCourtId=${foodCourtId}`)}
-      />
+      <MenuHeader isFoodCourt={!!foodCourtId} restaurants={foodCourtRestaurants} onRestaurantSelect={(id) => navigate(`/menu?restaurantId=${id}&foodCourtId=${foodCourtId}`)} />
 
       <div className="fixed top-0 left-0 right-0 bg-white shadow-sm z-40">
         <div className="relative flex flex-col px-4 py-4">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-              style={{ backgroundColor: themeColor }}
-            >
+            <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: themeColor }}>
               <ChevronLeft className="h-6 w-6 text-white" />
             </button>
             <div>
@@ -314,18 +302,9 @@ export default function Menu() {
           {foodCourtId && foodCourtRestaurants.length > 0 && (
             <div className="mt-4 flex gap-4 overflow-x-auto hide-scrollbar">
               {foodCourtRestaurants.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)}
-                  className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'
-                    }`}
-                >
+                <button key={r.id} onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`}>
                   <div className="w-12 h-12 rounded-full overflow-hidden">
-                    <img
-                      src={r.logo || r.coverImage}
-                      alt={r.name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={r.logo || r.coverImage} alt={r.name} className="w-full h-full object-cover" />
                   </div>
                   <span className="text-sm font-medium whitespace-nowrap">{r.name}</span>
                 </button>
@@ -337,37 +316,20 @@ export default function Menu() {
         <div className="px-2 py-1 border-b mt-1">
           <div className="flex gap-4 overflow-x-auto hide-scrollbar relative" ref={categoriesRef}>
             {categories?.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${activeCategory === category.id
-                    ? 'text-white'
-                    : 'bg-white text-gray-600'
-                  }`}
-                style={activeCategory === category.id ? { backgroundColor: themeColor } : undefined}
-              >
+              <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${activeCategory === category.id ? 'text-white' : 'bg-white text-gray-600'}`} style={activeCategory === category.id ? { backgroundColor: themeColor } : undefined}>
                 {category.image ? (
                   <div className="w-7 h-7 rounded-full overflow-hidden">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={category.image} alt={category.name} className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-base">
-                    {category.icon}
-                  </div>
+                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-base">{category.icon}</div>
                 )}
                 <span className="text-[11px] whitespace-nowrap font-medium">{category.name}</span>
               </button>
             ))}
             {showScrollButton && (
               <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white to-transparent flex items-center justify-center">
-                <button
-                  onClick={handleScrollRight}
-                  className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors"
-                >
+                <button onClick={handleScrollRight} className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors">
                   <ChevronRight className="h-4 w-4 text-white" />
                 </button>
               </div>
@@ -380,8 +342,7 @@ export default function Menu() {
         {activePromotions.length > 0 && (
           <div className="fixed top-[145px] left-0 right-0 bg-emerald-500 text-white py-1.5 z-40">
             <div className="relative overflow-hidden">
-              <div className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+              <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
                 {activePromotions.map((promo, index) => (
                   <div key={promo.id} className="flex-shrink-0 w-full px-4 flex items-center justify-center gap-2">
                     <Tag className="h-4 w-4" />
@@ -395,11 +356,7 @@ export default function Menu() {
               {activePromotions.length > 1 && (
                 <div className="absolute -bottom-1 left-0 right-0 flex justify-center gap-1 pb-1">
                   {activePromotions.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${currentSlide === index ? 'bg-white' : 'bg-white/50'
-                        }`}
-                    />
+                    <div key={index} className={`w-1.5 h-1.5 rounded-full transition-colors ${currentSlide === index ? 'bg-white' : 'bg-white/50'}`} />
                   ))}
                 </div>
               )}
@@ -409,50 +366,30 @@ export default function Menu() {
         <div className="mb-6" /> {/* Ajout d'un espacement */}
         <div className="grid grid-cols-2 gap-4">
           {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => handleItemClick(item)}
-              className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[140px] ${item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                }`}
-            >
+            <div key={item.id} onClick={() => handleItemClick(item)} className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[140px] ${item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
               <div className="relative h-20">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 {(item.status !== 'available' || !isOpen) && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <span className="text-white font-medium text-sm">
-                      {!isOpen ? 'Restaurant fermé' : 'Non disponible'}
-                    </span>
+                    <span className="text-white font-medium text-sm">{!isOpen ? 'Restaurant fermé' : 'Non disponible'}</span>
                   </div>
                 )}
-                <button
-                  className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg"
-                  onClick={(e) => handleInfoClick(e, item)}
-                >
+                <button className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg" onClick={(e) => handleInfoClick(e, item)}>
                   <Info className="h-5 w-5" style={{ color: themeColor }} />
                 </button>
               </div>
               <div className="p-2">
                 <h3 className="font-medium text-sm mb-0.5">{item.name}</h3>
-                <p className="font-medium" style={{ color: themeColor }}>{item.price.toFixed(2)} €</p>
+                <p className="font-medium" style={{ color: themeColor }}>
+                  {item.price.toFixed(2)} €
+                </p>
                 {/* Afficher le badge de promotion si applicable */}
-                {activePromotions.map(promo => {
+                {activePromotions.map((promo) => {
                   if (promo.conditions.productId === item.id) {
                     return (
-                      <div
-                        key={promo.id}
-                        className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs"
-                      >
+                      <div key={promo.id} className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs">
                         <Tag className="h-3 w-3" />
-                        {promo.type === 'double' ? '1 acheté = 2 offerts' :
-                          promo.type === 'discount' ? `-${promo.conditions.discountPercent}%` :
-                            promo.type === 'free' ? `${promo.conditions.freeProductName} offert` :
-                              promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` :
-                                promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` :
-                                  ''}
+                        {promo.type === 'double' ? '1 acheté = 2 offerts' : promo.type === 'discount' ? `-${promo.conditions.discountPercent}%` : promo.type === 'free' ? `${promo.conditions.freeProductName} offert` : promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` : promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` : ''}
                       </div>
                     );
                   }
@@ -466,8 +403,7 @@ export default function Menu() {
                     handleItemClick(item);
                   }}
                   className="absolute bottom-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg"
-                  style={{ backgroundColor: themeColor }}
-                >
+                  style={{ backgroundColor: themeColor }}>
                   <Plus className="h-5 w-5" />
                 </button>
               )}
@@ -478,12 +414,7 @@ export default function Menu() {
 
       {items.length > 0 && (
         <div className="fixed bottom-4 left-4 right-4">
-          <button
-            onClick={toggleCart}
-            className={`w-full text-white py-4 rounded-xl flex items-center justify-between px-4 ${animatingItem ? 'animate-[cartShake_0.3s_ease-in-out]' : ''
-              }`}
-            style={{ backgroundColor: themeColor }}
-          >
+          <button onClick={toggleCart} className={`w-full text-white py-4 rounded-xl flex items-center justify-between px-4 ${animatingItem ? 'animate-[cartShake_0.3s_ease-in-out]' : ''}`} style={{ backgroundColor: themeColor }}>
             <div className="flex items-center gap-2">
               <span className="bg-white w-8 h-8 rounded-full flex items-center justify-center" style={{ color: themeColor }}>
                 {items.reduce((sum, item) => sum + item.quantity, 0)}
@@ -527,12 +458,12 @@ export default function Menu() {
           className="fixed w-32 h-32 rounded-xl bg-white shadow-xl z-[100] pointer-events-none left-1/2 top-1/2"
           style={{
             animation: 'addToCart 0.5s ease-in-out forwards',
-            backgroundImage: `url(${menuItems.find(item => item.id === animatingItem)?.image})`,
+            backgroundImage: `url(${menuItems.find((item) => item.id === animatingItem)?.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             transform: 'translate(-50%, -50%)',
             willChange: 'transform, opacity',
-            border: '2px solid white'
+            border: '2px solid white',
           }}
         />
       )}

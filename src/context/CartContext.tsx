@@ -1,29 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getActivePromotions } from '../services/promotionService';
 import type { Promotion } from '../types/firebase';
 import { useRestaurantContext } from './RestaurantContext';
-
-interface MenuOptions {
-  drink?: string;
-  side?: string;
-  sauces?: string[];
-}
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  restaurantId: string;
-  originalPrice?: number;
-  excludedIngredients?: string[];
-  menuOptions?: MenuOptions;
-  isCombo?: boolean;
-  remarks?: string | null;
-  promotionLabel?: string;
-}
+import { CartItem, MenuOptions } from '../types';
 
 interface CartContextType {
   items: CartItem[];
@@ -87,7 +69,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [location.search]);
 
-  const { restaurant, menu } = useRestaurantContext();
+  const { restaurant } = useRestaurantContext();
   const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
 
   // Load active promotions
@@ -111,7 +93,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       if (!foodCourtId || items.length === 0) return false;
       const firstRestaurantId = items[0]?.restaurantId;
-      return items.some(item => item.restaurantId !== firstRestaurantId);
+      return items.some((item) => item.restaurantId !== firstRestaurantId);
     } catch (error) {
       console.error('Error checking food court order:', error);
       return false;
@@ -147,17 +129,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addItem = (newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
-    setItems(currentItems => {
-      const getItemKey = (item: any) =>
-        `${item.id}-${JSON.stringify(item.menuOptions)}-${JSON.stringify(item.excludedIngredients)}`;
+    setItems((currentItems) => {
+      const getItemKey = (item: any) => `${item.id}-${JSON.stringify(item.menuOptions)}-${JSON.stringify(item.excludedIngredients)}`;
 
       const newItemKey = getItemKey(newItem);
-      const existingItemIndex = currentItems.findIndex(item => getItemKey(item) === newItemKey);
+      const existingItemIndex = currentItems.findIndex((item) => getItemKey(item) === newItemKey);
       const initialQuantity = newItem.quantity || 1;
       let itemToAdd = { ...newItem, quantity: initialQuantity };
 
       // Chercher une promotion applicable
-      const promotion = activePromotions.find(p => {
+      const promotion = activePromotions.find((p) => {
         return p.conditions.productId === newItem.id || p.conditions.freeProductId === newItem.id;
       });
 
@@ -170,7 +151,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               updatedItems[existingItemIndex] = {
                 ...updatedItems[existingItemIndex],
                 quantity: currentQuantity + 1,
-                promotionLabel: (currentQuantity + 1) % 2 === 0 ? '1 offert' : undefined
+                promotionLabel: (currentQuantity + 1) % 2 === 0 ? '1 offert' : undefined,
               };
               return updatedItems;
             }
@@ -182,7 +163,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               originalPrice: newItem.price,
               quantity: initialQuantity,
               price: Number((newItem.price * (1 - (promotion.conditions.discountPercent || 0) / 100)).toFixed(2)),
-              promotionLabel: `-${promotion.conditions.discountPercent}%`
+              promotionLabel: `-${promotion.conditions.discountPercent}%`,
             };
             break;
 
@@ -190,9 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             // Si c'est le produit offert
             if (newItem.id === promotion.conditions.freeProductId) {
               // Vérifier si le produit principal est dans le panier
-              const mainProductInCart = currentItems.some(item =>
-                item.id === promotion.conditions.productId
-              );
+              const mainProductInCart = currentItems.some((item) => item.id === promotion.conditions.productId);
 
               if (mainProductInCart) {
                 itemToAdd = {
@@ -200,15 +179,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   originalPrice: newItem.price,
                   quantity: initialQuantity,
                   price: 0,
-                  promotionLabel: 'OFFERT'
+                  promotionLabel: 'OFFERT',
                 };
               }
             }
             break;
 
-          case 'second_item_discount':
+          case 'second_item_discount': {
             // Trouver tous les articles identiques dans le panier
-            const sameItems = currentItems.filter(item => item.id === newItem.id);
+            const sameItems = currentItems.filter((item) => item.id === newItem.id);
             const totalQuantity = sameItems.reduce((sum, item) => sum + item.quantity, 0) + initialQuantity;
 
             // Appliquer la réduction sur les articles pairs
@@ -219,6 +198,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               itemToAdd.promotionLabel = `-${discountPercent}% sur le 2ème`;
             }
             break;
+          }
         }
       }
 
@@ -229,7 +209,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity: updatedItems[existingItemIndex].quantity + itemToAdd.quantity,
           price: itemToAdd.price,
           originalPrice: itemToAdd.originalPrice,
-          promotionLabel: itemToAdd.promotionLabel
+          promotionLabel: itemToAdd.promotionLabel,
         };
         return updatedItems;
       }
@@ -239,7 +219,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const addItems = (newItems: CartItem[]) => {
-    setItems(currentItems => {
+    setItems((currentItems) => {
       if (!Array.isArray(currentItems)) {
         return newItems;
       }
@@ -248,34 +228,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = (id: string, menuOptions?: MenuOptions) => {
-    setItems(currentItems => {
+    setItems((currentItems) => {
       // Trouver l'index exact de l'item à supprimer
-      const itemIndex = currentItems.findIndex(item => {
+      const itemIndex = currentItems.findIndex((item) => {
         const sameId = item.id === id;
-        const sameOptions = menuOptions ?
-          JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) :
-          true;
+        const sameOptions = menuOptions ? JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) : true;
         return sameId && sameOptions;
       });
 
       if (itemIndex === -1) return currentItems;
 
       // Créer une nouvelle copie du tableau sans l'item
-      return [
-        ...currentItems.slice(0, itemIndex),
-        ...currentItems.slice(itemIndex + 1)
-      ];
+      return [...currentItems.slice(0, itemIndex), ...currentItems.slice(itemIndex + 1)];
     });
   };
 
   const updateQuantity = (id: string, quantity: number, menuOptions?: MenuOptions) => {
-    setItems(currentItems => {
+    setItems((currentItems) => {
       // Trouver l'index de l'item à mettre à jour
-      const itemIndex = currentItems.findIndex(item => {
+      const itemIndex = currentItems.findIndex((item) => {
         const sameId = item.id === id;
-        const sameOptions = menuOptions ?
-          JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) :
-          true;
+        const sameOptions = menuOptions ? JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) : true;
         return sameId && sameOptions;
       });
 
@@ -284,16 +257,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const item = currentItems[itemIndex];
 
       // Chercher une promotion applicable
-      const promotion = activePromotions.find(p => {
+      const promotion = activePromotions.find((p) => {
         return p.conditions.productId === item.id || p.conditions.freeProductId === item.id;
       });
 
       // Si la quantité est 0 ou moins, supprimer l'item
       if (quantity <= 0) {
-        return [
-          ...currentItems.slice(0, itemIndex),
-          ...currentItems.slice(itemIndex + 1)
-        ];
+        return [...currentItems.slice(0, itemIndex), ...currentItems.slice(itemIndex + 1)];
       }
 
       // Mettre à jour la quantité avec gestion de la promotion
@@ -308,14 +278,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           case 'free':
             if (item.id === promotion.conditions.freeProductId) {
               // Trouver le produit principal dans le panier
-              const mainProduct = currentItems.find(cartItem =>
-                cartItem.id === promotion.conditions.productId
-              );
+              const mainProduct = currentItems.find((cartItem) => cartItem.id === promotion.conditions.productId);
 
               // Vérifier si le produit principal est dans le panier
-              const mainProductInCart = currentItems.some(cartItem =>
-                cartItem.id === promotion.conditions.productId
-              );
+              const mainProductInCart = currentItems.some((cartItem) => cartItem.id === promotion.conditions.productId);
 
               if (mainProductInCart) {
                 // Un seul produit offert par produit principal
@@ -328,7 +294,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   originalPrice: item.price,
                   // Prix total = prix unitaire * quantité payante
                   price: paidQuantity === 0 ? 0 : item.originalPrice || item.price,
-                  promotionLabel: freeQuantity > 0 ? `${freeQuantity} offert${freeQuantity > 1 ? 's' : ''}` : undefined
+                  promotionLabel: freeQuantity > 0 ? `${freeQuantity} offert${freeQuantity > 1 ? 's' : ''}` : undefined,
                 };
               }
             }
@@ -336,11 +302,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      return [
-        ...currentItems.slice(0, itemIndex),
-        updatedItem,
-        ...currentItems.slice(itemIndex + 1)
-      ];
+      return [...currentItems.slice(0, itemIndex), updatedItem, ...currentItems.slice(itemIndex + 1)];
     });
   };
 
@@ -350,25 +312,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     cleanupFoodCourtData();
   };
 
-  const toggleCart = () => setIsCartOpen(prev => !prev);
+  const toggleCart = () => setIsCartOpen((prev) => !prev);
 
-  const total = items && Array.isArray(items)
-    ? items.reduce((sum, item) => {
-      if (item.promotionLabel === '1 offert') {
-        // Pour chaque paire d'articles, ne facturer qu'un seul
-        return sum + (Math.ceil(item.quantity / 2) * item.price);
-      }
-      if (item.promotionLabel?.includes('sur le 2ème')) {
-        const pairs = Math.floor(item.quantity / 2);
-        const remainingItems = item.quantity % 2;
-        const regularPrice = item.originalPrice || item.price;
-        const discountedPrice = item.price;
+  const total =
+    items && Array.isArray(items)
+      ? items.reduce((sum, item) => {
+          if (item.promotionLabel === '1 offert') {
+            // Pour chaque paire d'articles, ne facturer qu'un seul
+            return sum + Math.ceil(item.quantity / 2) * item.price;
+          }
+          if (item.promotionLabel?.includes('sur le 2ème')) {
+            const pairs = Math.floor(item.quantity / 2);
+            const remainingItems = item.quantity % 2;
+            const regularPrice = item.originalPrice || item.price;
+            const discountedPrice = item.price;
 
-        return sum + (pairs * (regularPrice + discountedPrice)) + (remainingItems * regularPrice);
-      }
-      return sum + (item.price * item.quantity);
-    }, 0)
-    : 0;
+            return sum + pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice;
+          }
+          return sum + item.price * item.quantity;
+        }, 0)
+      : 0;
 
   return (
     <CartContext.Provider
@@ -385,14 +348,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         isFoodCourtOrder,
         foodCourtId,
         scheduledTime,
-        setScheduledTime
-      }}
-    >
+        setScheduledTime,
+      }}>
       {children}
     </CartContext.Provider>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
