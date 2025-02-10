@@ -23,6 +23,7 @@ import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminLogin from './pages/superadmin/SuperAdminLogin';
 import UserDetails from './pages/superadmin/UserDetails';
 import UserManagement from './pages/superadmin/UserManagement';
+import Finances from './pages/superadmin/Finances';
 import DiscoverPage from './pages/user/DiscoverPage';
 import FavoritesPage from './pages/user/FavoritesPage';
 import FoodCourtDetails from './pages/user/FoodCourtDetails';
@@ -163,6 +164,7 @@ export default function App() {
                           <Route path="/restaurants/:id" element={<RestaurantDetails />} />
                           <Route path="/users" element={<UserManagement />} />
                           <Route path="/users/:id" element={<UserDetails />} />
+                          <Route path="/finances" element={<Finances />} />
                         </Routes>
                       </SuperAdminProtectedRoute>
                     }

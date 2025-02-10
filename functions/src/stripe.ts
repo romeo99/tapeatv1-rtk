@@ -145,7 +145,7 @@ export const createStripeConnectAccount = functions.https.onCall(async (data, co
     }
 
     const restaurantData = restaurantDoc.data();
-    
+
     // Create a Stripe Connect account
     const account = await stripe.accounts.create({
       type: 'express',
@@ -161,7 +161,7 @@ export const createStripeConnectAccount = functions.https.onCall(async (data, co
     // Update restaurant document with Stripe account ID
     await db.doc(`restaurants/${restaurantId}`).update({
       stripeAccountId: account.id,
-      stripeAccountStatus: 'pending'
+      stripeAccountStatus: 'pending',
     });
 
     // Create an account link for onboarding

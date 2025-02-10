@@ -101,6 +101,7 @@ export interface Restaurant {
     lat: number;
     lng: number;
   };
+  stripeAccountId?: string;
   instagramUrl?: string;
   googleUrl?: string;
   createdAt: Date;

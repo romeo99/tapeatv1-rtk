@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { ChevronLeft } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getApplicationFee } from '../services/superadminService';
 
 // Initialize Stripe
@@ -19,36 +19,66 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applicationFee, setApplicationFee] = useState<number>(0);
+  const [subtotal, setSubtotal] = useState<number>(0);
+  const [serviceFees, setServiceFees] = useState<number>(0);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
 
   useEffect(() => {
+    let mounted = true;
     const fetchFee = async () => {
+      if (!mounted) return;
+      setLoading(true);
       try {
         const fee = await getApplicationFee();
-        setApplicationFee(fee);
+        if (mounted) {
+          setApplicationFee(fee);
+        }
       } catch (err) {
-        setError('Failed to fetch application fee');
-        console.error('Error fetching application fee:', err);
+        if (mounted) {
+          setError('Failed to fetch application fee');
+          console.error('Error fetching application fee:', err);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
     fetchFee();
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  // Calculate subtotal, service fees, and total price when items or application fee changes
+  useEffect(() => {
+    const newSubtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const newServiceFees = newSubtotal * applicationFee;
+    const newTotalPrice = newSubtotal + newServiceFees;
+    setSubtotal(newSubtotal);
+    setServiceFees(newServiceFees);
+    setTotalPrice(newTotalPrice);
+  }, [items, applicationFee]);
 
   if (!user) {
     window.location.href = '/signin?redirect=checkout';
   }
 
-  // Group items by restaurant
-  const restaurantItems = items.reduce((acc, item) => {
-    if (!acc[item.restaurantId]) {
-      acc[item.restaurantId] = {
-        items: [],
-        amount: 0,
-      };
-    }
-    acc[item.restaurantId].items.push(item);
-    acc[item.restaurantId].amount += item.price * item.quantity;
-    return acc;
-  }, {} as Record<string, { items: typeof items; amount: number }>);
+  // Memoize restaurant items grouping to prevent unnecessary recalculations
+  const restaurantItems = useMemo(() => {
+    return items.reduce((acc, item) => {
+      if (!acc[item.restaurantId]) {
+        acc[item.restaurantId] = {
+          items: [],
+          amount: 0,
+        };
+      }
+      acc[item.restaurantId].items.push(item);
+      acc[item.restaurantId].amount += item.price * item.quantity;
+      return acc;
+    }, {} as Record<string, { items: typeof items; amount: number }>);
+  }, [items]);
+
 
   const handlePayment = async () => {
     try {
@@ -128,33 +158,25 @@ export default function Checkout() {
               </div>
             </div>
           ))}
-          {(() => {
-            const subtotal = Object.values(restaurantItems).reduce((acc, { amount }) => acc + amount, 0);
-            const serviceFees = subtotal * applicationFee;
-            const total = subtotal + serviceFees;
-
-            return (
-              <div className="mt-6 p-4 bg-white rounded-lg shadow">
-                <div className="flex justify-between">
-                  <div className="font-medium">Sous-total total</div>
-                  <div className="font-medium">{subtotal.toFixed(2)}€</div>
-                </div>
-                <div className="flex justify-between mt-2">
-                  <div className="text-gray-600">Frais de service</div>
-                  <div className="text-gray-600">{serviceFees.toFixed(2)}€</div>
-                </div>
-                <div className="flex justify-between mt-3 pt-3 border-t">
-                  <div className="font-semibold text-lg">Total</div>
-                  <div className="font-semibold text-lg">{total.toFixed(2)}€</div>
-                </div>
-              </div>
-            );
-          })()}
+          <div className="mt-6 p-4 bg-white rounded-lg shadow">
+            <div className="flex justify-between">
+              <div className="font-medium">Sous-total total</div>
+              <div className="font-medium">{subtotal.toFixed(2)}€</div>
+            </div>
+            <div className="flex justify-between mt-2">
+              <div className="text-gray-600">Frais de service</div>
+              <div className="text-gray-600">{serviceFees.toFixed(2)}€</div>
+            </div>
+            <div className="flex justify-between mt-3 pt-3 border-t">
+              <div className="font-semibold text-lg">Total</div>
+              <div className="font-semibold text-lg">{totalPrice.toFixed(2)}€</div>
+            </div>
+          </div>
         </div>
 
         <div className="sticky bottom-0 left-0 right-0 pb-safe bg-gray-50 pt-2">
           <button onClick={handlePayment} disabled={loading || !user || items.length === 0} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>
-            {loading ? 'Traitement en cours...' : `Payer ${total.toFixed(2)} €`}
+            {loading ? 'Traitement en cours...' : `Payer ${totalPrice.toFixed(2)} €`}
           </button>
         </div>
       </div>
