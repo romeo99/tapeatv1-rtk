@@ -1,9 +1,9 @@
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { AlertCircle, Loader2, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useRestaurantContext } from '../../context/RestaurantContext';
 import { signIn } from '../../services/authService';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,6 +13,32 @@ export default function Login() {
     email: '',
     password: ''
   });
+  const { restaurant } = useRestaurantContext();
+
+  const handleConnectStripe = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const functions = getFunctions();
+
+      const createConnectAccount = httpsCallable(functions, 'createStripeConnectAccount');
+      const result = await createConnectAccount({ restaurantId: restaurant?.id });
+
+      // The result will contain the Stripe Connect onboarding URL
+      const { url } = result.data as { url: string };
+
+      // Redirect to Stripe Connect onboarding
+      window.location.href = url;
+    } catch (err) {
+      console.error('Error creating Stripe Connect account:', err);
+      setError('Une erreur est survenue lors de la création du compte Stripe Connect. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isStripeConnected = restaurant?.stripeAccountId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +46,15 @@ export default function Login() {
       setLoading(true);
       setError(null);
       const result = await signIn(formData.email, formData.password);
-      
+
       // Redirect based on user role
       if (result.role === 'owner' || result.role === 'staff') {
-        navigate('/admin/live-orders');
+        if (!isStripeConnected) {
+          handleConnectStripe();
+          //navigate('/admin/live-orders');
+        } else {
+          navigate('/admin/live-orders');
+        }
       } else {
         throw new Error('Accès non autorisé');
       }
@@ -127,7 +158,14 @@ export default function Login() {
               </button>
             </div>
           </form>
-
+          {
+            !isStripeConnected && (
+              <span
+                className="py-5 text-center text-sm text-gray-500"
+              >
+                Vous allez être redirigé vers la page de configuration de Stripe Connect pour recevoir des paiements.
+              </span>)
+          }
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
