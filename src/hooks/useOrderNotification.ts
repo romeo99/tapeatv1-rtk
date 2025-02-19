@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import useSound from 'use-sound';
 import { notificationSoundUrl, useNotification } from '../context/NotificationContext';
 import { useOrderContext } from '../context/OrderContext';
+import { printReceipt } from '../services/printingService';
 
 const initializeOrderNotifications = (): void => {
     const notifications = localStorage.getItem('orderNotifications');
@@ -33,7 +34,11 @@ const useOrderNotification = (): void => {
 
             newOrderIds.forEach(id => {
                 if (!notifications[id]) {
+                    //Lancement de la notification
                     playNotificationSound();
+                    //Impression du reçu
+                    printReceipt(orders.find((o) => o.id === id)!);
+
                     notifications[id] = true;
                 }
             });
