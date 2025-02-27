@@ -1,7 +1,9 @@
+import { doc, getDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { AlertCircle, Loader2, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { db } from '../../config/firebase';
 import { useRestaurantContext } from '../../context/RestaurantContext';
 import { signIn } from '../../services/authService';
 
@@ -17,8 +19,7 @@ export default function Login() {
 
   const handleConnectStripe = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      alert('Vous allez être redirigé vers la page de configuration de Stripe Connect pour recevoir des paiements. Veuillez suivre les instructions pour terminer la configuration.');
 
       const functions = getFunctions();
 
@@ -38,20 +39,24 @@ export default function Login() {
     }
   };
 
-  const isStripeConnected = restaurant?.stripeAccountId;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError(null);
       const result = await signIn(formData.email, formData.password);
+      console.log('Login result:', result);
+
 
       // Redirect based on user role
       if (result.role === 'owner' || result.role === 'staff') {
-        if (!isStripeConnected) {
+        //Récupération du restaurant de l'utilisateur
+        const restaurantDoc = await getDoc(doc(db, 'restaurants', result.user.uid));
+        const restaurantData = restaurantDoc.data();
+        if (!restaurantData!.stripeAccountId) {
+          // If the restaurant doesn't have a Stripe Connect account, redirect to
+          // the Stripe Connect onboarding page
           handleConnectStripe();
-          //navigate('/admin/live-orders');
         } else {
           navigate('/admin/live-orders');
         }
@@ -158,14 +163,6 @@ export default function Login() {
               </button>
             </div>
           </form>
-          {
-            !isStripeConnected && (
-              <span
-                className="py-5 text-center text-sm text-gray-500"
-              >
-                Vous allez être redirigé vers la page de configuration de Stripe Connect pour recevoir des paiements.
-              </span>)
-          }
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
