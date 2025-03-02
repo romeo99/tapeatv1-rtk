@@ -3,10 +3,12 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSound } from 'use-sound';
 import AdminLayout from '../../components/admin/AdminLayout';
 import OrderSearchKeypad from '../../components/admin/OrderSearchKeypad';
+import Receipt from '../../components/Receipt';
 import { AdminLayoutContext } from '../../context/AdminLayoutContext';
 import { notificationSoundUrl, useNotification } from '../../context/NotificationContext';
 import { useOrderContext } from '../../context/OrderContext';
 import { useRestaurantContext } from '../../context/RestaurantContext';
+import useOrderNotification from '../../hooks/useOrderNotification';
 import { deductInventoryFromOrder } from '../../services/inventoryService';
 import { getButtonPosition, saveButtonPosition } from '../../services/uiPreferencesService';
 
@@ -66,6 +68,8 @@ export default function LiveOrders() {
   });
   const [newOrders, setNewOrders] = useState<string[]>([]);
   const previousOrdersRef = useRef<string[]>([]);
+  
+  const { contentRef, orderToPrint } = useOrderNotification();
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
@@ -701,6 +705,15 @@ export default function LiveOrders() {
           </div>
         )}
       </div>
+
+      {orderToPrint && (
+        <Receipt
+          ref={contentRef}
+          orderId={orderToPrint.id}
+          items={orderToPrint.items}
+          total={orderToPrint.total}
+        />
+      )}
 
       {/* Keypad Modal */}
       {showKeypad && (
