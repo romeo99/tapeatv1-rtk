@@ -1,19 +1,25 @@
-import { useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { ChevronLeft } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import UpsellModal from '../components/UpsellModal';
+import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
-import { ChevronLeft } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { createOrder } from '../services/orderService';
 import { getApplicationFee } from '../services/superadminService';
+import { Restaurant } from '../types/firebase';
+import { getSuggestionGroups } from '../utils/suggestionEngine';
 
 // Initialize Stripe
 const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxVuIegQhWgi0AvXL4NupqnQY0wDQPEo38AJi3wV9mrFdAzSLvFGXG00PttU7DHT');
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, total } = useCart();
+  const { items, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
   const { user } = useAuth();
   const { themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
@@ -22,6 +28,52 @@ export default function Checkout() {
   const [subtotal, setSubtotal] = useState<number>(0);
   const [serviceFees, setServiceFees] = useState<number>(0);
   const [totalPrice, setTotalPrice] = useState<number>(0);
+
+
+  const [selectedMethod, setSelectedMethod] = useState<string>('card');
+  const [showUpsell, setShowUpsell] = useState(true);
+  const [searchParams] = useSearchParams();
+  const restaurantId = searchParams.get('restaurantId');
+  const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
+
+  // Redirect if no restaurant ID
+  useEffect(() => {
+    if (!restaurantId) {
+      navigate('/');
+      return;
+    }
+    //Recuperation du restaurant depuis firebase
+    const restaurantRef = doc(db, 'restaurants', restaurantId);
+    const unsubscribe = onSnapshot(restaurantRef, (doc) => {
+      if (doc.exists()) {
+        setRestaurantData(doc.data() as Restaurant);
+      } else {
+        navigate('/');
+      }
+    }
+    );
+    return () => unsubscribe();
+  }, [restaurantId, navigate]);
+
+  // Filter available payment methods
+  const availablePaymentMethods = {
+    card: { icon: '💳', label: 'Carte' },
+    cash: { icon: '💵', label: 'Espèces' },
+    apple_pay: { icon: 'apple-pay', label: 'Apple Pay' }
+  };
+
+  const allowedMethods = restaurantData?.paymentMethods || ['card', 'cash', 'apple_pay'];
+
+  // Set first allowed payment method as default
+  useEffect(() => {
+    if (allowedMethods.length > 0 && !allowedMethods.includes(selectedMethod)) {
+      setSelectedMethod(allowedMethods[0]);
+    }
+    if (!restaurantData?.stripeAccountId) {
+
+      setSelectedMethod('cash');
+    }
+  }, [allowedMethods, selectedMethod, restaurantData?.id]);
 
   useEffect(() => {
     let mounted = true;
@@ -60,9 +112,9 @@ export default function Checkout() {
     setTotalPrice(newTotalPrice);
   }, [items, applicationFee]);
 
-  if (!user) {
+  /* if (!user) {
     window.location.href = '/signin?redirect=checkout';
-  }
+  } */
 
   // Memoize restaurant items grouping to prevent unnecessary recalculations
   const restaurantItems = useMemo(() => {
@@ -81,48 +133,113 @@ export default function Checkout() {
 
 
   const handlePayment = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
+    let orderId: string | undefined;
 
-      const stripe = await stripePromise;
-      if (!stripe || !user) return;
+    // En mode caisse, toujours sur place
+    let orderType = JSON.parse(localStorage.getItem('orderType') || '{"type":"takeaway"}');
 
-      const functions = getFunctions();
-      const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
+    if (!['dine_in', 'takeaway', 'delivery'].includes(orderType.type)) {
+      throw new Error('Type de commande invalide');
+    }
 
-      // Prepare restaurants data for the payment session
-      const restaurants = Object.entries(restaurantItems).map(([restaurantId, { items, amount }]) => ({
-        restaurantId,
-        items,
-        amount,
-      }));
-
-      // Create checkout session
-      const { data } = await createCheckoutSession({
-        restaurants,
-        fees: applicationFee,
-        successUrl: `${window.location.origin}/order-confirmation`,
-        cancelUrl: `${window.location.origin}/checkout`,
-      });
-
-      // Redirect to Stripe checkout
-      const { sessionId } = data as { sessionId: string };
-      const result = await stripe.redirectToCheckout({
-        sessionId,
-      });
-
-      if (result.error) {
-        console.error('Stripe checkout error:', result.error);
-        setError('Une erreur est survenue lors de la redirection vers la page de paiement.');
+    // Préparer les données de livraison si nécessaire
+    let deliveryInfo = null;
+    if (orderType.type === 'delivery') {
+      const deliveryData = localStorage.getItem('deliveryInfo');
+      if (!deliveryData) {
+        throw new Error('Informations de livraison manquantes');
       }
-    } catch (error) {
-      console.error('Payment error:', error);
-      setError('Une erreur est survenue lors de la création de la session de paiement.');
-    } finally {
-      setLoading(false);
+      try {
+        deliveryInfo = JSON.parse(deliveryData);
+      } catch (e) {
+        throw new Error('Informations de livraison invalides');
+      }
+    }
+
+    if (selectedMethod === 'card') {
+      try {
+        const stripe = await stripePromise;
+        if (!stripe /* || !user */) return;
+
+        const functions = getFunctions();
+        const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
+
+        // Prepare restaurants data for the payment session
+        const restaurants = Object.entries(restaurantItems).map(([restaurantId, { items, amount }]) => ({
+          restaurantId,
+          items,
+          amount,
+        }));
+
+        // Create checkout session
+        const { data } = await createCheckoutSession({
+          restaurants,
+          fees: applicationFee,
+          successUrl: `${window.location.origin}/order-confirmation`,
+          cancelUrl: `${window.location.origin}/checkout`,
+        });
+
+        // Redirect to Stripe checkout
+        const { sessionId } = data as { sessionId: string };
+        const result = await stripe.redirectToCheckout({
+          sessionId,
+        });
+
+        if (result.error) {
+          console.error('Stripe checkout error:', result.error);
+          setError('Une erreur est survenue lors de la redirection vers la page de paiement.');
+        }
+      } catch (error) {
+        console.error('Payment error:', error);
+        setError('Une erreur est survenue lors de la création de la session de paiement.');
+      } finally {
+        setLoading(false);
+      }
+    } else if (selectedMethod === "cash") {
+      // Regular restaurant order
+      const orderData = {
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          menuOptions: item.menuOptions
+        })),
+        type: orderType.type,
+        subtotal: subtotal,
+        total: totalPrice,
+        paymentMethod: selectedMethod,
+        paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
+        scheduledTime,
+        ...(deliveryInfo && { delivery: deliveryInfo })
+      };
+
+      orderId = await createOrder(restaurantData?.id!, orderData);
+      if (!orderId) {
+        throw new Error('Erreur lors de la création de la commande');
+      }
+
+      clearCart();
+      localStorage.removeItem('foodCourtId');
+      localStorage.removeItem('deliveryInfo');
+
+      navigate('/order-confirmation', {
+        state: { orderId, foodCourtId },
+        replace: true
+      });
+      setLoading(false)
     }
   };
+
+  const handleUpsellComplete = () => {
+    setShowUpsell(false);
+  };
+
+  // Obtenir les suggestions basées sur le panier actuel
+  const suggestions = getSuggestionGroups(items, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -137,6 +254,46 @@ export default function Checkout() {
 
       <div className="max-w-lg mx-auto px-4 pt-20 flex-1 flex flex-col">
         {error && <div className="mb-6 p-4 bg-red-50 text-red-500 rounded-lg">{error}</div>}
+
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {Object.entries(availablePaymentMethods).map(([method, details]) => {
+            const isAllowed = allowedMethods.includes(method) && (method !== 'card' || restaurantData?.stripeAccountId);
+            const paymentMethod = availablePaymentMethods[method as keyof typeof availablePaymentMethods];
+            if (!paymentMethod) return null;
+
+            return (
+              <button
+                key={method}
+                onClick={() => setSelectedMethod(method)}
+                disabled={!isAllowed}
+                className={`p-3 sm:p-4 rounded-xl flex flex-col items-center gap-1 sm:gap-2 border-2 transition-colors ${selectedMethod === method
+                  ? 'bg-opacity-10'
+                  : isAllowed
+                    ? 'bg-white border-gray-200 hover:border-2'
+                    : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
+                  }`}
+                style={selectedMethod === method ? {
+                  backgroundColor: `${themeColor}20`,
+                  borderColor: themeColor
+                } : undefined}
+              >
+                {method === 'apple_pay' ? (
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Apple_Pay_logo.svg/1920px-Apple_Pay_logo.svg.png"
+                    alt="Apple Pay"
+                    className="h-6 sm:h-8 object-contain"
+                  />
+                ) : (
+                  <span className="text-xl sm:text-2xl">{details.icon}</span>
+                )}
+                <span className="text-xs sm:text-sm font-medium">{details.label}</span>
+                {!isAllowed && (
+                  <span className="text-[10px] sm:text-xs text-gray-500">Non disponible</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
         <div className="flex-1 overflow-auto">
           {Object.entries(restaurantItems).map(([restaurantId, { items, amount }]) => (
@@ -175,11 +332,20 @@ export default function Checkout() {
         </div>
 
         <div className="sticky bottom-0 left-0 right-0 pb-safe bg-gray-50 pt-2">
-          <button onClick={handlePayment} disabled={loading || !user || items.length === 0} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>
+          <button onClick={handlePayment} disabled={loading /* || !user */ || items.length === 0} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>
             {loading ? 'Traitement en cours...' : `Payer ${totalPrice.toFixed(2)} €`}
           </button>
         </div>
       </div>
+
+      {/* Modal de suggestions */}
+      {showUpsell && items.length > 0 && suggestions.length > 0 && (
+        <UpsellModal
+          suggestions={suggestions}
+          onClose={handleUpsellComplete}
+          onComplete={handleUpsellComplete}
+        />
+      )}
     </div>
   );
 }

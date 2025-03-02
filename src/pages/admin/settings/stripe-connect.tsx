@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { useRestaurantContext } from '../../../context/RestaurantContext';
-import { useSearchParams } from 'react-router-dom';
 
 export default function StripeConnect() {
   const [loading, setLoading] = useState(false);
@@ -41,8 +41,27 @@ export default function StripeConnect() {
     }
   };
 
+  const getStripeDashboardUrl = async (accountId: string | undefined) => {
+    try {
+      const response = await fetch(`/api/stripe/accounts/${accountId}/login_links`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        //window.location.href = data.url; // Rediriger l'utilisateur vers Stripe
+        window.open(data.url, '_blank');
+      } else {
+        console.error("Erreur lors de la récupération du lien:", data);
+        alert("Impossible d'obtenir le lien Stripe.");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert("Une erreur est survenue.");
+    }
+  }
+
   const isStripeConnected = restaurant?.stripeAccountId;
-  console.log(isStripeConnected);
 
   return (
     <AdminLayout>
@@ -57,7 +76,7 @@ export default function StripeConnect() {
           {error && <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4">{error}</div>}
 
           {isStripeConnected ? (
-            <div className="bg-blue-50 text-blue-700 p-4 rounded-md">Votre compte est déjà connecté à Stripe</div>
+            <button className="bg-blue-50 text-blue-700 p-4 rounded-md" onClick={() => getStripeDashboardUrl(restaurant?.stripeAccountId)}>Votre compte est déjà connecté à Stripe. Cliquez pour accédez au dashboard</button>
           ) : (
             <button onClick={handleConnectStripe} disabled={loading} className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
               {loading ? 'Chargement...' : 'Configurer Stripe Connect'}

@@ -34,12 +34,13 @@ interface PaymentSession {
 }
 
 export const createCheckoutSession = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+  /* if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
+  } */
 
   const { restaurants, successUrl, cancelUrl, fees } = data;
-  const userId = context.auth.uid;
+  //const userId = context.auth.uid;
+  const userId = '123'; // For testing purposes
 
   try {
     // Validate all restaurants first
@@ -128,9 +129,9 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
 });
 
 export const createStripeConnectAccount = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+  /* if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
+  } */
 
   const { restaurantId } = data;
   if (!restaurantId) {

@@ -60,7 +60,7 @@ export default function Cart() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (cartRef.current && !cartRef.current.contains(event.target as Node) && user?.displayName) {
+      if (cartRef.current && !cartRef.current.contains(event.target as Node) /* && user?.displayName */) {
         toggleCart();
       }
     }
@@ -75,13 +75,14 @@ export default function Cart() {
   }, [isCartOpen, toggleCart]);
 
   const handleCheckout = () => {
-    if (!user) {
+    const restaurantId = items[0]?.restaurantId;
+    /* if (!user) {
       setShowAuthModal(true);
       return;
-    }
+    } */
     toggleCart();
     const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
-    navigate(`/checkout${isRegisterMode ? '?mode=register' : ''}`);
+    navigate(`/checkout${isRegisterMode ? '?mode=register' : `?restaurantId=${restaurantId}`}`);
   };
 
   if (!isCartOpen) return null;
