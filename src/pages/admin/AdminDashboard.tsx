@@ -11,6 +11,7 @@ import { useRestaurantContext } from '../../context/RestaurantContext';
 import useOrderNotification from '../../hooks/useOrderNotification';
 import { checkImpersonation, signInWithImpersonationToken } from '../../services/authService';
 import { getDashboardStats } from '../../services/dashboardService';
+import Receipt from '../../components/Receipt';
 
 export default function AdminDashboard() {
   const { restaurant } = useRestaurantContext();
@@ -22,7 +23,7 @@ export default function AdminDashboard() {
   const { orders } = useOrderContext();
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useOrderNotification();
+  const { contentRef, orderToPrint } = useOrderNotification();
 
   const handlePeriodChange = async (period: string) => {
     try {
@@ -156,6 +157,14 @@ export default function AdminDashboard() {
             </select>
           </div>
         </div>
+        {orderToPrint && (
+          <Receipt
+            ref={contentRef}
+            orderId={orderToPrint.id}
+            items={orderToPrint.items}
+            total={orderToPrint.total}
+          />
+        )}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {stats.totalOrders === 0 ? (

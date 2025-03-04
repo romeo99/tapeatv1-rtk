@@ -1,7 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSound from 'use-sound';
 import { notificationSoundUrl, useNotification } from '../context/NotificationContext';
 import { useOrderContext } from '../context/OrderContext';
+//import { printReceipt } from '../services/printingService';
+import { useReactToPrint } from "react-to-print";
+import { Order } from '../types/firebase';
 
 const initializeOrderNotifications = (): void => {
     const notifications = localStorage.getItem('orderNotifications');
@@ -10,13 +13,21 @@ const initializeOrderNotifications = (): void => {
     }
 };
 
-const useOrderNotification = (): void => {
+const useOrderNotification = () => {
     const { orders } = useOrderContext();
     const { playNotificationSound } = useNotification();
     const previousOrdersRef = useRef<string[]>([]);
     const [play] = useSound(notificationSoundUrl, {
         volume: 1.0,
         interrupt: true // Allow interrupting previous sound
+    });
+
+    const contentRef = useRef<HTMLDivElement>(null); // Ref pour le reçu
+    const [orderToPrint, setOrderToPrint] = useState<Order | null>(null);
+
+    // Fonction d'impression
+    const handlePrint = useReactToPrint({
+        contentRef,
     });
 
     useEffect(() => {
@@ -33,7 +44,20 @@ const useOrderNotification = (): void => {
 
             newOrderIds.forEach(id => {
                 if (!notifications[id]) {
+                    //Lancement de la notification
                     playNotificationSound();
+                    //Impression du reçu
+                    //printReceipt(orders.find((o) => o.id === id)!);
+
+                    // Définir la commande en cours d'impression
+                    const order = orders.find(o => o.id === id);
+                    if (order) {
+                        setOrderToPrint(order);
+                        setTimeout(() => {
+                            handlePrint(); // Lancer l'impression
+                        }, 2000);
+                    }
+
                     notifications[id] = true;
                 }
             });
@@ -51,6 +75,8 @@ const useOrderNotification = (): void => {
 
         previousOrdersRef.current = currentOrderIds;
     }, [orders, playNotificationSound, play]);
+
+    return { contentRef, orderToPrint };
 };
 
 export default useOrderNotification;
