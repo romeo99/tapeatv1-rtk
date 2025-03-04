@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../../components/layout/BottomNavigation';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import FoodCourtCard from '../../components/user/FoodCourtCard';
 import LocationSelector from '../../components/user/LocationSelector';
 import RestaurantCard from '../../components/user/RestaurantCard';
 import RestaurantMap from '../../components/user/RestaurantMap';
+import { getAllFoodCourts } from '../../services/foodCourtService';
 import type { Location } from '../../services/locationService';
 import { getCurrentLocation } from '../../services/locationService';
 import { getNearbyRestaurants } from '../../services/restaurantService';
@@ -22,6 +24,7 @@ const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["pla
 export default function DiscoverPage() {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [foodCourts, setFoodCourts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,7 +156,9 @@ export default function DiscoverPage() {
     try {
       setLoading(true);
       const data = await getNearbyRestaurants(lat, lng);
+      const foodCourtsData = await getAllFoodCourts();
       setRestaurants(data);
+      setFoodCourts(foodCourtsData);
     } catch (err) {
       console.error('Error loading restaurants:', err);
       setError('Erreur lors du chargement des restaurants');
@@ -221,43 +226,75 @@ export default function DiscoverPage() {
 
       <div className={`pt-36 ${viewMode === 'list' ? 'pb-24 overflow-y-auto' : 'flex-1'}`}>
         {viewMode === 'list' ? (
-          <div className="px-4 space-y-10">
-            {SECTIONS.map((section) => {
-              const sectionRestaurants = section.id === 'nearby'
-                ? [...filteredRestaurants].sort((a, b) => a.distance - b.distance)
-                : filteredRestaurants;
+          <>
+            <div className="px-4 space-y-10">
+              {SECTIONS.map((section) => {
+                const sectionRestaurants = section.id === 'nearby'
+                  ? [...filteredRestaurants].sort((a, b) => a.distance - b.distance)
+                  : filteredRestaurants;
 
-              return (
-                <section key={section.id} className="space-y-4">
-                  <div className="flex items-center justify-between mb-4 pr-4">
-                    <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
-                    <button
-                      onClick={() => navigate(`/restaurants?type=${section.id}`)}
-                      className="text-emerald-500 text-sm font-medium flex items-center gap-1 whitespace-nowrap"
-                    >
-                      Voir plus
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex overflow-x-auto hide-scrollbar gap-4 -mx-4 px-4 pb-2">
-                    {sectionRestaurants.map((restaurant) => (
-                      <div key={restaurant.id} className="flex-none w-[260px]">
-                        <RestaurantCard
-                          restaurant={restaurant}
+                return (
+                  <section key={section.id} className="space-y-4">
+                    <div className="flex items-center justify-between mb-4 pr-4">
+                      <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
+                      <button
+                        onClick={() => navigate(`/restaurants?type=${section.id}`)}
+                        className="text-emerald-500 text-sm font-medium flex items-center gap-1 whitespace-nowrap"
+                      >
+                        Voir plus
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex overflow-x-auto hide-scrollbar gap-4 -mx-4 px-4 pb-2">
+                      {sectionRestaurants.map((restaurant) => (
+                        <div key={restaurant.id} className="flex-none w-[260px]">
+                          <RestaurantCard
+                            restaurant={restaurant}
+                            variant="default"
+                          />
+                        </div>
+                      ))}
+                      {sectionRestaurants.length === 0 && (
+                        <div className="w-full text-center py-8 text-gray-500">
+                          Aucun restaurant disponible pour le moment
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+            <div className="px-4 space-y-10">
+              <section className="space-y-4">
+                <div className="flex items-center justify-between mb-4 pr-4">
+                  <h2 className="text-lg font-bold text-gray-900">FoodCourt</h2>
+                  {/* <button
+                    onClick={() => navigate(`/restaurants?type=${foodCourts[0].id}`)}
+                    className="text-emerald-500 text-sm font-medium flex items-center gap-1 whitespace-nowrap"
+                  >
+                    Voir plus
+                    <ChevronRight className="h-4 w-4" />
+                  </button> */}
+                </div>
+                <div className="flex overflow-x-auto hide-scrollbar gap-4 -mx-4 px-4 pb-2">
+                  {foodCourts.length > 0 ? foodCourts.map((foodCourt) => {
+                    return (
+                      <div key={foodCourt.id} className="flex-none w-[260px]">
+                        <FoodCourtCard
+                          foodCourt={foodCourt}
                           variant="default"
                         />
                       </div>
-                    ))}
-                    {sectionRestaurants.length === 0 && (
-                      <div className="w-full text-center py-8 text-gray-500">
-                        Aucun restaurant disponible pour le moment
-                      </div>
-                    )}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+                    );
+                  }) : (
+                    <div className="w-full text-center py-8 text-gray-500">
+                      Aucun food-court disponible pour le moment
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </>
         ) : (
           <div className="absolute inset-0 top-32 bottom-24">
             <RestaurantMap

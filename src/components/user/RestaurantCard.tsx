@@ -13,6 +13,7 @@ interface RestaurantCardProps {
     distance: number;
     prepTime: number;
     duration: string;
+    isOpen: boolean;
   };
   variant?: 'default' | 'full-width';
 }
