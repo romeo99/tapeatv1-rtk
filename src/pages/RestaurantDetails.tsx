@@ -6,10 +6,11 @@ import { useRestaurantContext } from '../context/RestaurantContext';
 export default function RestaurantDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { restaurant } = useRestaurantContext();
+  const { restaurant, themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
+  const foodCourtId = searchParams.get('foodCourtId');
 
   useEffect(() => {
     if (!restaurant?.id) {
@@ -118,7 +119,11 @@ export default function RestaurantDetails() {
           <button
             onClick={() => {
               localStorage.setItem('orderType', JSON.stringify({ type: 'dine_in' }));
-              navigate(`/menu?restaurantId=${restaurant?.id}`);
+              if (foodCourtId) {
+                navigate(`/menu?restaurantId=${restaurant?.id}&foodCourtId=${foodCourtId}`);
+              } else {
+                navigate(`/menu?restaurantId=${restaurant?.id}`);
+              }
             }}
             className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-all text-center"
           >
@@ -130,7 +135,11 @@ export default function RestaurantDetails() {
           <button
             onClick={() => {
               localStorage.setItem('orderType', JSON.stringify({ type: 'takeaway' }));
-              navigate(`/menu?restaurantId=${restaurant?.id}`);
+              if (foodCourtId) {
+                navigate(`/menu?restaurantId=${restaurant?.id}&foodCourtId=${foodCourtId}`);
+              } else {
+                navigate(`/menu?restaurantId=${restaurant?.id}`);
+              }
             }}
             className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-all text-center"
           >

@@ -302,7 +302,7 @@ export default function Menu() {
           {foodCourtId && foodCourtRestaurants.length > 0 && (
             <div className="mt-4 flex gap-4 overflow-x-auto hide-scrollbar">
               {foodCourtRestaurants.map((r) => (
-                <button key={r.id} onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`}>
+                <button key={r.id} onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`} style={{ backgroundColor: r.id === restaurantId ? themeColor : undefined }}>
                   <div className="w-12 h-12 rounded-full overflow-hidden">
                     <img src={r.logo || r.coverImage} alt={r.name} className="w-full h-full object-cover" />
                   </div>
@@ -329,7 +329,7 @@ export default function Menu() {
             ))}
             {showScrollButton && (
               <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white to-transparent flex items-center justify-center">
-                <button onClick={handleScrollRight} className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors">
+                <button onClick={handleScrollRight} className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors" style={{ backgroundColor: themeColor }}>
                   <ChevronRight className="h-4 w-4 text-white" />
                 </button>
               </div>

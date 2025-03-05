@@ -16,7 +16,7 @@ interface MenuHeaderProps {
 export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelect }: MenuHeaderProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { restaurant } = useRestaurantContext();
+  const { restaurant, themeColor } = useRestaurantContext();
   const [showRestaurants, setShowRestaurants] = useState(false);
   const foodCourtId = searchParams.get('foodCourtId');
 
@@ -82,7 +82,7 @@ export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelec
               </div>
               <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex flex-col items-center pointer-events-none">
                 <span className="text-[10px] text-gray-500 mb-0.5">Changer de restaurant</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ backgroundColor: themeColor }}></div>
               </div>
             </button>
           </div>
