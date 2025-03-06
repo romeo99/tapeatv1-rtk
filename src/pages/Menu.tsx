@@ -299,7 +299,7 @@ export default function Menu() {
             </div>
           </div>
 
-          {foodCourtId && foodCourtRestaurants.length > 0 && (
+          {/* {foodCourtId && foodCourtRestaurants.length > 0 && (
             <div className="mt-4 flex gap-4 overflow-x-auto hide-scrollbar">
               {foodCourtRestaurants.map((r) => (
                 <button key={r.id} onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`} style={{ backgroundColor: r.id === restaurantId ? themeColor : undefined }}>
@@ -310,7 +310,7 @@ export default function Menu() {
                 </button>
               ))}
             </div>
-          )}
+          )} */}
         </div>
 
         <div className="px-2 py-1 border-b mt-1">
