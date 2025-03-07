@@ -313,7 +313,7 @@ export default function Menu() {
           )} */}
         </div>
 
-        <div className="px-2 py-1 border-b mt-1">
+        <div className="px-2 py-1 border-b mt-10 md:mt-5">
           <div className="flex gap-4 overflow-x-auto hide-scrollbar relative" ref={categoriesRef}>
             {categories?.map((category) => (
               <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${activeCategory === category.id ? 'text-white' : 'bg-white text-gray-600'}`} style={activeCategory === category.id ? { backgroundColor: themeColor } : undefined}>
@@ -363,7 +363,7 @@ export default function Menu() {
             </div>
           </div>
         )}
-        <div className="mb-6" /> {/* Ajout d'un espacement */}
+        <div className="mb-16 md:mb-10" />
         <div className="grid grid-cols-2 gap-4">
           {filteredItems.map((item) => (
             <div key={item.id} onClick={() => handleItemClick(item)} className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[140px] ${item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
