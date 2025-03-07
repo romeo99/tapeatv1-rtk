@@ -79,7 +79,9 @@ export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelec
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="font-medium">{restaurant?.name || "Restaurant"}</span>
+                  <span className="font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px] block">
+                    {restaurant?.name || "Restaurant"}
+                  </span>
                 </div>
                 <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showRestaurants ? 'rotate-180' : ''}`} />
                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
