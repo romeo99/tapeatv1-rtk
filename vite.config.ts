@@ -10,6 +10,14 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       global: "window",
+      "process.env": {}
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: "window",
+        },
+      },
     },
     server: {
       proxy: {
@@ -26,6 +34,9 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: true,
+      commonjsOptions: {
+        strictRequires: ['node_modules/aws-sdk/**/*.js'],
+      },
       rollupOptions: {
         output: {
           manualChunks: {
