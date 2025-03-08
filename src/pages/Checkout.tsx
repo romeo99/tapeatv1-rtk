@@ -393,7 +393,12 @@ export default function Checkout() {
         fees: applicationFee,
         successUrl: `${window.location.origin}/order-confirmation`,
         cancelUrl: `${window.location.origin}/checkout`,
+        method: selectedMethod
       });
+
+      clearCart();
+      localStorage.removeItem('foodCourtId');
+      localStorage.removeItem('deliveryInfo');
 
       // Rediriger vers Stripe Checkout
       const { sessionId } = data as { sessionId: string };
@@ -422,7 +427,7 @@ export default function Checkout() {
         throw new Error('Erreur lors de la création de la commande');
       }
 
-      if (selectedMethod === 'card') {
+      if (selectedMethod === 'card' || selectedMethod === 'apple_pay') {
         await processPayment();
       } else {
         clearCart();
@@ -471,7 +476,7 @@ export default function Checkout() {
 
         <div className="grid grid-cols-3 gap-3 mb-4">
           {Object.entries(availablePaymentMethods).map(([method, details]) => {
-            const isAllowed = allowedMethods.includes(method) && (method !== 'card' || restaurantData?.stripeAccountId);
+            const isAllowed = allowedMethods.includes(method) && ((method !== 'card' && method !== 'apple_pay') || restaurantData?.stripeAccountId);
             const paymentMethod = availablePaymentMethods[method as keyof typeof availablePaymentMethods];
             if (!paymentMethod) return null;
 

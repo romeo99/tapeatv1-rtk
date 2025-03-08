@@ -39,7 +39,7 @@ exports.createCheckoutSession = functions.https.onCall(async (data, context) => 
     /* if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     } */
-    const { restaurants, successUrl, cancelUrl, fees } = data;
+    const { restaurants, successUrl, cancelUrl, fees, method } = data;
     //const userId = context.auth.uid;
     const userId = '123'; // For testing purposes
     try {
@@ -71,7 +71,8 @@ exports.createCheckoutSession = functions.https.onCall(async (data, context) => 
         // const totalAmount = restaurants.reduce((sum: any, restaurant: { amount: any }) => sum + restaurant.amount, 0);
         // Create Stripe checkout session
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
+            payment_method_types: [method],
+            allow_promotion_codes: true,
             mode: 'payment',
             success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: cancelUrl,
