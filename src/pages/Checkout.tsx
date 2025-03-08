@@ -6,10 +6,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import UpsellModal from '../components/UpsellModal';
 import { db } from '../config/firebase';
-import { useAuth } from '../context/AuthContext';
+//import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
-import { createOrder } from '../services/orderService';
+import { createFoodCourtOrder, createOrder } from '../services/orderService';
 import { getApplicationFee } from '../services/superadminService';
 import { Restaurant } from '../types/firebase';
 import { getSuggestionGroups } from '../utils/suggestionEngine';
@@ -20,7 +20,7 @@ const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxV
 export default function Checkout() {
   const navigate = useNavigate();
   const { items, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
-  const { user } = useAuth();
+  //const { user } = useAuth();
   const { themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,8 +131,7 @@ export default function Checkout() {
     }, {} as Record<string, { items: typeof items; amount: number }>);
   }, [items]);
 
-
-  const handlePayment = async () => {
+  /* const handlePayment = async () => {
     setLoading(true);
     setError(null);
     let orderId: string | undefined;
@@ -159,9 +158,40 @@ export default function Checkout() {
     }
 
     if (selectedMethod === 'card') {
+      if (isFoodCourtOrder && foodCourtId) {
+        // Group items by restaurant
+        const restaurantOrders = Object.entries(
+          items.reduce((acc, item) => {
+            if (!acc[item.restaurantId]) {
+              acc[item.restaurantId] = { items: [] };
+            }
+            acc[item.restaurantId].items.push({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+              menuOptions: item.menuOptions
+            });
+            return acc;
+          }, {} as Record<string, { items: any[] }>)
+        ).map(([restaurantId, data]) => ({
+          restaurantId,
+          ...data
+        }));
+
+        orderId = await createOrder(foodCourtId, {
+          restaurantOrders,
+          type: orderType.type,
+          paymentMethod: selectedMethod,
+          scheduledTime,
+          ...(deliveryInfo && { delivery: deliveryInfo })
+        });
+      }
+
       try {
         const stripe = await stripePromise;
-        if (!stripe /* || !user */) return;
+        if (!stripe ) return;
 
         const functions = getFunctions();
         const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
@@ -198,28 +228,59 @@ export default function Checkout() {
         setLoading(false);
       }
     } else if (selectedMethod === "cash") {
-      // Regular restaurant order
-      const orderData = {
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-          menuOptions: item.menuOptions
-        })),
-        type: orderType.type,
-        subtotal: subtotal,
-        total: totalPrice,
-        paymentMethod: selectedMethod,
-        paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
-        scheduledTime,
-        ...(deliveryInfo && { delivery: deliveryInfo })
-      };
+      if (isFoodCourtOrder && foodCourtId) {
+        // Group items by restaurant
+        const restaurantOrders = Object.entries(
+          items.reduce((acc, item) => {
+            if (!acc[item.restaurantId]) {
+              acc[item.restaurantId] = { items: [] };
+            }
+            acc[item.restaurantId].items.push({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+              menuOptions: item.menuOptions
+            });
+            return acc;
+          }, {} as Record<string, { items: any[] }>)
+        ).map(([restaurantId, data]) => ({
+          restaurantId,
+          ...data
+        }));
 
-      orderId = await createOrder(restaurantData?.id!, orderData);
-      if (!orderId) {
-        throw new Error('Erreur lors de la création de la commande');
+        orderId = await createOrder(foodCourtId, {
+          restaurantOrders,
+          type: orderType.type,
+          paymentMethod: selectedMethod,
+          scheduledTime,
+          ...(deliveryInfo && { delivery: deliveryInfo })
+        });
+      } else {
+        // Regular restaurant order
+        const orderData = {
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            menuOptions: item.menuOptions
+          })),
+          type: orderType.type,
+          subtotal: subtotal,
+          total: totalPrice,
+          paymentMethod: selectedMethod,
+          paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
+          scheduledTime,
+          ...(deliveryInfo && { delivery: deliveryInfo })
+        };
+
+        orderId = await createOrder(restaurantData?.id!, orderData);
+        if (!orderId) {
+          throw new Error('Erreur lors de la création de la commande');
+        }
       }
 
       clearCart();
@@ -231,6 +292,159 @@ export default function Checkout() {
         replace: true
       });
       setLoading(false)
+    }
+  }; */
+
+  const prepareOrderData = (selectedMethod: string) => {
+    let orderData;
+    let orderType = JSON.parse(localStorage.getItem('orderType') || '{"type":"takeaway"}');
+
+    if (!['dine_in', 'takeaway', 'delivery'].includes(orderType.type)) {
+      throw new Error('Type de commande invalide');
+    }
+
+    // Préparer les données de livraison si nécessaire
+    let deliveryInfo = null;
+    if (orderType.type === 'delivery') {
+      const deliveryData = localStorage.getItem('deliveryInfo');
+      if (!deliveryData) {
+        throw new Error('Informations de livraison manquantes');
+      }
+      try {
+        deliveryInfo = JSON.parse(deliveryData);
+      } catch (e) {
+        throw new Error('Informations de livraison invalides');
+      }
+    }
+
+    if (isFoodCourtOrder && foodCourtId) {
+      // Regroupement des items par restaurant
+      const restaurantOrders = Object.entries(
+        items.reduce((acc, item) => {
+          if (!acc[item.restaurantId]) {
+            acc[item.restaurantId] = { items: [] };
+          }
+          acc[item.restaurantId].items.push({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            menuOptions: item.menuOptions
+          });
+          return acc;
+        }, {} as Record<string, { items: any[] }>)
+      ).map(([restaurantId, data]) => ({
+        restaurantId,
+        ...data
+      }));
+
+      orderData = {
+        restaurantOrders,
+        type: orderType.type,
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        total: parseFloat(totalPrice.toFixed(2)),
+        paymentMethod: selectedMethod,
+        paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
+        scheduledTime,
+        ...(deliveryInfo && { delivery: deliveryInfo })
+      };
+    } else {
+      // Commande d'un seul restaurant
+      orderData = {
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          menuOptions: item.menuOptions
+        })),
+        type: orderType.type,
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        total: parseFloat(totalPrice.toFixed(2)),
+        paymentMethod: selectedMethod,
+        paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
+        scheduledTime,
+        ...(deliveryInfo && { delivery: deliveryInfo })
+      };
+    }
+    return orderData;
+  };
+
+  const processPayment = async () => {
+    try {
+      const stripe = await stripePromise;
+      if (!stripe) return;
+
+      const functions = getFunctions();
+      const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
+
+      // Préparer les données des restaurants pour la session de paiement
+      const restaurants = Object.entries(restaurantItems).map(([restaurantId, { items, amount }]) => ({
+        restaurantId,
+        items,
+        amount,
+      }));
+
+      // Créer la session Stripe
+      const { data } = await createCheckoutSession({
+        restaurants,
+        fees: applicationFee,
+        successUrl: `${window.location.origin}/order-confirmation`,
+        cancelUrl: `${window.location.origin}/checkout`,
+      });
+
+      // Rediriger vers Stripe Checkout
+      const { sessionId } = data as { sessionId: string };
+      const result = await stripe.redirectToCheckout({ sessionId });
+
+      if (result.error) {
+        console.error('Stripe checkout error:', result.error);
+        setError('Une erreur est survenue lors de la redirection vers la page de paiement.');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      setError('Une erreur est survenue lors de la création de la session de paiement.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    setLoading(true);
+
+    try {
+      const orderData = prepareOrderData(selectedMethod);
+      let orderId: string | string[] | void = isFoodCourtOrder ? await createFoodCourtOrder(foodCourtId!, orderData) : await createOrder(restaurantData?.id!, orderData);
+
+      if (!orderId) {
+        throw new Error('Erreur lors de la création de la commande');
+      }
+
+      if (selectedMethod === 'card') {
+        await processPayment();
+      } else {
+        clearCart();
+        localStorage.removeItem('foodCourtId');
+        localStorage.removeItem('deliveryInfo');
+        if (isFoodCourtOrder && foodCourtId) {
+          navigate('/order-confirmation', {
+            state: { foodCourtId },
+            replace: true
+          });
+        } else {
+          navigate('/order-confirmation', {
+            state: { orderId, foodCourtId },
+            replace: true
+          });
+        }
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Order error:', error);
+      setError('Une erreur est survenue lors de la commande.');
+      setLoading(false);
     }
   };
 

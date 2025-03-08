@@ -1,16 +1,16 @@
 import { Calendar, Minus, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
-import { useAuth } from '../context/AuthContext';
 import { getRestaurant } from '../services/restaurantService';
 
 export default function Cart() {
   const cartRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { themeColor } = useRestaurantContext();
-  const { items, total, isCartOpen, toggleCart, updateQuantity, removeItem, scheduledTime, isFoodCourtOrder } = useCart();
+  const { items, total, isCartOpen, toggleCart, updateQuantity, removeItem, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
   const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -82,7 +82,7 @@ export default function Cart() {
     } */
     toggleCart();
     const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
-    navigate(`/checkout${isRegisterMode ? '?mode=register' : `?restaurantId=${restaurantId}`}`);
+    navigate(`/checkout?restaurantId=${restaurantId}${isRegisterMode ? '&mode=register' : ''}${isFoodCourtOrder ? `&foodCourtId=${foodCourtId}` : ''}`);
   };
 
   if (!isCartOpen) return null;
