@@ -160,9 +160,7 @@ export default function AdminDashboard() {
         {orderToPrint && (
           <Receipt
             ref={contentRef}
-            orderId={orderToPrint.id}
-            items={orderToPrint.items}
-            total={orderToPrint.total}
+            order={orderToPrint}
           />
         )}
 
