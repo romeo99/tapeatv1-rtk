@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Receipt } from 'lucide-react';
-import { getRestaurant } from '../services/restaurantService';
-import { useOrderContext } from '../context/OrderContext';
-import { useRestaurantContext } from '../context/RestaurantContext';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 import OrderSummary from '../components/OrderSummary';
+import { useOrderContext } from '../context/OrderContext';
+import { useRestaurantContext } from '../context/RestaurantContext';
+import { getRestaurant } from '../services/restaurantService';
 import type { Order } from '../types/firebase';
 
 export default function OrderConfirmation() {
@@ -26,7 +26,7 @@ export default function OrderConfirmation() {
   useEffect(() => {
     const loadRestaurant = async () => {
       if (!restaurantId) return;
-      
+
       try {
         const restaurantData = await getRestaurant(restaurantId);
         setCurrentThemeColor(restaurantData.theme?.primaryColor || '#10B981');
@@ -46,9 +46,9 @@ export default function OrderConfirmation() {
         const storedFoodCourtId = localStorage.getItem('foodCourtId');
         setTimeout(() => {
           if (isRegisterMode) {
-          setTimeout(() => {
-            navigate(`/restaurant?restaurantId=${restaurant?.id}&mode=register${storedFoodCourtId ? `&foodCourtId=${storedFoodCourtId}` : ''}`);
-          }, 1500);
+            setTimeout(() => {
+              navigate(`/restaurant?restaurantId=${restaurant?.id}&mode=register${storedFoodCourtId ? `&foodCourtId=${storedFoodCourtId}` : ''}`);
+            }, 1500);
           } else if (storedFoodCourtId) {
             navigate(`/food-court?foodCourtId=${storedFoodCourtId}`);
           } else {
@@ -86,7 +86,7 @@ export default function OrderConfirmation() {
     <div className="min-h-screen bg-gray-50">
       <div className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
         <div className="flex items-center p-4">
-          <button 
+          <button
             onClick={() => {
               const foodCourtId = localStorage.getItem('foodCourtId');
               if (isRegisterMode) {
@@ -106,8 +106,8 @@ export default function OrderConfirmation() {
 
       <div className="pt-20 px-4 pb-24">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4" 
-               style={{ backgroundColor: `${currentThemeColor}20` }}>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
+            style={{ backgroundColor: `${currentThemeColor}20` }}>
             <Receipt className="h-8 w-8" style={{ color: currentThemeColor }} />
           </div>
           <h2 className="text-4xl font-bold mb-2" style={{ color: currentThemeColor }}>
@@ -118,9 +118,9 @@ export default function OrderConfirmation() {
 
         <OrderSummary
           items={orderDetails.items}
-          subtotal={orderDetails.subtotal}
-          tax={orderDetails.tax}
-          total={orderDetails.total}
+          //subtotal={orderDetails.subtotal}
+          //tax={orderDetails.tax}
+          //total={orderDetails.total}
           themeColor={currentThemeColor}
         />
 

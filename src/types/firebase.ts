@@ -66,6 +66,12 @@ export interface Promotion {
   updatedAt: Date;
 }
 
+export interface MenuOptions {
+  drink?: string;
+  side?: string;
+  sauces?: string[];
+}
+
 export interface OrderItem {
   id: string;
   name: string;
@@ -73,12 +79,8 @@ export interface OrderItem {
   quantity: number;
   image?: string;
   remarks?: string | null;
-  excludedIngredients?: string[];
-  menuOptions?: {
-    drink: boolean;
-    side: boolean;
-    sauces: string[];
-  };
+  excludedIngredients?: string[] | null;
+  menuOptions?: MenuOptions | null;
   sections?: Array<{
     name: string;
     choice: string;

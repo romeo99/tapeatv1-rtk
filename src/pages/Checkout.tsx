@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import UpsellModal from '../components/UpsellModal';
 import { db } from '../config/firebase';
 //import { useAuth } from '../context/AuthContext';
+import OrderSummary from '../components/OrderSummary';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { createFoodCourtOrder, createOrder } from '../services/orderService';
@@ -330,7 +331,13 @@ export default function Checkout() {
             price: item.price,
             quantity: item.quantity,
             image: item.image,
-            menuOptions: item.menuOptions
+            menuOptions: item.menuOptions,
+            excludedIngredients: item.excludedIngredients,
+            remarks: item.remarks,
+            sections: item.sections,
+            promotionLabel: item.promotionLabel,
+            restaurantName: item.restaurantName,
+            restaurantId: item.restaurantId,
           });
           return acc;
         }, {} as Record<string, { items: any[] }>)
@@ -358,7 +365,13 @@ export default function Checkout() {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
-          menuOptions: item.menuOptions
+          menuOptions: item.menuOptions,
+          excludedIngredients: item.excludedIngredients,
+          remarks: item.remarks,
+          sections: item.sections,
+          promotionLabel: item.promotionLabel,
+          restaurantName: item.restaurantName,
+          restaurantId: item.restaurantId,
         })),
         type: orderType.type,
         subtotal: parseFloat(subtotal.toFixed(2)),
@@ -515,6 +528,16 @@ export default function Checkout() {
         </div>
 
         <div className="flex-1 overflow-auto">
+          <OrderSummary
+            restaurants={restaurantItems}
+            items={items}
+            //subtotal={subtotal}
+            //total={total}
+            themeColor={themeColor}
+          />
+        </div>
+
+        {/* <div className="flex-1 overflow-auto">
           {Object.entries(restaurantItems).map(([restaurantId, { items, amount }]) => (
             <div key={restaurantId} className="bg-white rounded-lg shadow-sm mb-4 p-4">
               <div className="font-medium mb-3">Restaurant name: {items[0].restaurantName}</div>
@@ -548,7 +571,7 @@ export default function Checkout() {
               <div className="font-semibold text-lg">{totalPrice.toFixed(2)}€</div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="sticky bottom-0 left-0 right-0 pb-safe bg-gray-50 pt-2">
           <button onClick={handlePayment} disabled={loading /* || !user */ || items.length === 0} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>

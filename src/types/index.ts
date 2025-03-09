@@ -38,6 +38,11 @@ export interface CartItem {
   isCombo?: boolean | null;
   remarks?: string | null;
   promotionLabel?: string | null;
+  sections?: Array<{
+    name: string;
+    choice: string;
+    included: boolean;
+  }>;
 }
 export interface MenuItem {
   id: string;
