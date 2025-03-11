@@ -29,7 +29,10 @@ export default function CategoryForm() {
 
   useEffect(() => {
     const loadCategory = async () => {
-      if (!id || !categories) return;
+      if (!id || !categories) {
+        setInitialLoading(false);
+        return;
+      }
 
       try {
         setInitialLoading(true);
