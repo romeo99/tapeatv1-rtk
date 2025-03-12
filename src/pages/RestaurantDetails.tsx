@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, Instagram, MapPin, Phone, ShoppingBag, Star, UtensilsCrossed } from 'lucide-react';
+import { ChevronLeft, Clock, Instagram, MapPin, Phone, ShoppingBag, Star, Truck, UtensilsCrossed } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRestaurantContext } from '../context/RestaurantContext';
@@ -11,6 +11,22 @@ export default function RestaurantDetails() {
   const [error, setError] = useState<string | null>(null);
   const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
   const foodCourtId = searchParams.get('foodCourtId');
+
+  const getTodayHours = () => {
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    const today = days[new Date().getDay()];
+    const openingHours = restaurant?.openingHours[today];
+
+    return openingHours?.closed ? "Fermé" : `${openingHours?.open} - ${openingHours?.close}`;
+  };
 
   useEffect(() => {
     if (!restaurant?.id) {
@@ -87,7 +103,7 @@ export default function RestaurantDetails() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      <span>11:00 - 23:00</span>
+                      <span>{getTodayHours()}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
@@ -116,7 +132,27 @@ export default function RestaurantDetails() {
           Comment souhaitez-vous être servi ?
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
+          {
+            restaurant?.serviceOptions.map((service) => (
+              <button
+                onClick={() => {
+                  localStorage.setItem('orderType', JSON.stringify({ type: service }));
+                  if (foodCourtId) {
+                    navigate(`/menu?restaurantId=${restaurant?.id}&foodCourtId=${foodCourtId}`);
+                  } else {
+                    navigate(`/menu?restaurantId=${restaurant?.id}`);
+                  }
+                }}
+                className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-all text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+                  {service === 'dine_in' ? <UtensilsCrossed className="h-8 w-8 text-emerald-500" /> : service === 'takeaway' ? <ShoppingBag className="h-8 w-8 text-emerald-500" /> : <Truck className="h-8 w-8 text-emerald-500" />}
+
+                </div>
+                <span className="font-medium">{service === 'dine_in' ? "Sur place" : service === 'takeaway' ? "À emporter" : "Livraison"}</span>
+              </button>
+            ))}
+          {/* <button
             onClick={() => {
               localStorage.setItem('orderType', JSON.stringify({ type: 'dine_in' }));
               if (foodCourtId) {
@@ -147,7 +183,7 @@ export default function RestaurantDetails() {
               <ShoppingBag className="h-8 w-8 text-emerald-500" />
             </div>
             <span className="font-medium">À emporter</span>
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

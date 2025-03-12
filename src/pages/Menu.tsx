@@ -53,7 +53,7 @@ export default function Menu() {
     const checkScroll = () => {
       if (categoriesRef.current) {
         const { scrollWidth, clientWidth, scrollLeft } = categoriesRef.current;
-        setShowScrollButton(scrollWidth > clientWidth && scrollLeft < scrollWidth - clientWidth);
+        setShowScrollButton(scrollLeft < scrollWidth - clientWidth);
       }
     };
 
@@ -73,7 +73,7 @@ export default function Menu() {
   const handleScrollRight = () => {
     if (categoriesRef.current) {
       const container = categoriesRef.current;
-      const scrollAmount = 200; // Ajustez cette valeur selon vos besoins
+      const scrollAmount = 300; // Ajustez cette valeur selon vos besoins
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -298,21 +298,7 @@ export default function Menu() {
               <h1 className="text-xl font-semibold">{restaurant?.name || 'Menu'}</h1>
             </div>
           </div>
-
-          {/* {foodCourtId && foodCourtRestaurants.length > 0 && (
-            <div className="mt-4 flex gap-4 overflow-x-auto hide-scrollbar">
-              {foodCourtRestaurants.map((r) => (
-                <button key={r.id} onClick={() => navigate(`/menu?restaurantId=${r.id}&foodCourtId=${foodCourtId}`)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-4 py-2 rounded-xl transition-colors ${r.id === restaurantId ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`} style={{ backgroundColor: r.id === restaurantId ? themeColor : undefined }}>
-                  <div className="w-12 h-12 rounded-full overflow-hidden">
-                    <img src={r.logo || r.coverImage} alt={r.name} className="w-full h-full object-cover" />
-                  </div>
-                  <span className="text-sm font-medium whitespace-nowrap">{r.name}</span>
-                </button>
-              ))}
-            </div>
-          )} */}
         </div>
-
         <div className="px-2 py-1 border-b mt-10 md:mt-5">
           <div className="flex gap-4 overflow-x-auto hide-scrollbar relative" ref={categoriesRef}>
             {categories?.map((category) => (
@@ -338,9 +324,10 @@ export default function Menu() {
         </div>
       </div>
       <div className={`${activePromotions.length > 0 ? 'pt-48' : 'pt-32'} pb-24 px-4 overflow-y-auto`} style={{ height: 'calc(100vh - 80px)' }}>
+        <div className="mb-16 md:mb-10" />
         {/* Bandeau promotions */}
         {activePromotions.length > 0 && (
-          <div className="fixed top-[145px] left-0 right-0 bg-emerald-500 text-white py-1.5 z-40">
+          <div className="fixed top-[180px] left-0 right-0 bg-emerald-500 text-white py-1.5 z-40">
             <div className="relative overflow-hidden">
               <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
                 {activePromotions.map((promo, index) => (

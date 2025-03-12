@@ -112,4 +112,11 @@ export interface Restaurant {
   orderCount?: number;
   paymentMethods: string[];
   serviceOptions: string[];
+  openingHours: {
+    [key: string]: {
+      closed: boolean;
+      open: string;
+      close: string;
+    };
+  }
 }
