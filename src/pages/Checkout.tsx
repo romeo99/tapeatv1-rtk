@@ -30,6 +30,7 @@ export default function Checkout() {
   const [showUpsell, setShowUpsell] = useState(true);
   const [searchParams] = useSearchParams();
   const restaurantId = searchParams.get('restaurantId');
+  const isRegisterMode = searchParams.get('mode') === 'register';
   const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
 
   // Redirect if no restaurant ID
@@ -398,19 +399,38 @@ export default function Checkout() {
         throw new Error('Erreur lors de la création de la commande');
       }
 
-      if (selectedMethod === 'card' || selectedMethod === 'apple_pay') {
+      if (selectedMethod === 'card') {
         await processPayment();
-      } else {
+      } else if (isRegisterMode && selectedMethod === 'apple_pay') {
         clearCart();
         localStorage.removeItem('foodCourtId');
         localStorage.removeItem('deliveryInfo');
         if (isFoodCourtOrder && foodCourtId) {
-          navigate('/order-confirmation', {
+          navigate(`/order-confirmation${isRegisterMode ? '&mode=register' : ''}`, {
             state: { foodCourtId },
             replace: true
           });
         } else {
-          navigate('/order-confirmation', {
+          navigate(`/order-confirmation${isRegisterMode ? '&mode=register' : ''}`, {
+            state: { orderId, foodCourtId },
+            replace: true
+          });
+        }
+        setLoading(false);
+      } else if (!isRegisterMode && selectedMethod === 'apple_pay') {
+        processPayment()
+      }
+      else {
+        clearCart();
+        localStorage.removeItem('foodCourtId');
+        localStorage.removeItem('deliveryInfo');
+        if (isFoodCourtOrder && foodCourtId) {
+          navigate(`/order-confirmation${isRegisterMode ? '?mode=register' : ''}`, {
+            state: { foodCourtId },
+            replace: true
+          });
+        } else {
+          navigate(`/order-confirmation${isRegisterMode ? '?mode=register' : ''}`, {
             state: { orderId, foodCourtId },
             replace: true
           });

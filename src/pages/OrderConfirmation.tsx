@@ -74,6 +74,9 @@ export default function OrderConfirmation() {
     }
   };
 
+  console.log(isRegisterMode);
+
+
   if (!orderDetails) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -142,11 +145,13 @@ export default function OrderConfirmation() {
             </button>
           </div>
         ) : (
-          <div className="text-center mt-6">
-            <p className="text-gray-500">
-              {redirecting ? 'Redirection en cours...' : 'Redirection automatique dans quelques secondes...'}
-            </p>
-          </div>
+          <button
+            onClick={() => navigate('/restaurant?mode=register')}
+            className="w-full text-white rounded-xl py-3 font-medium"
+            style={{ backgroundColor: currentThemeColor }}
+          >
+            Nouvelle commande
+          </button>
         )}
       </div>
     </div>

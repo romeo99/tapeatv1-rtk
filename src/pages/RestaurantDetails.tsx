@@ -138,9 +138,9 @@ export default function RestaurantDetails() {
                 onClick={() => {
                   localStorage.setItem('orderType', JSON.stringify({ type: service }));
                   if (foodCourtId) {
-                    navigate(`/menu?restaurantId=${restaurant?.id}&foodCourtId=${foodCourtId}`);
+                    navigate(`/menu?restaurantId=${restaurant?.id}&foodCourtId=${foodCourtId}${isRegisterMode ? '&mode=register' : ''}`);
                   } else {
-                    navigate(`/menu?restaurantId=${restaurant?.id}`);
+                    navigate(`/menu?restaurantId=${restaurant?.id}${isRegisterMode ? '&mode=register' : ''}`);
                   }
                 }}
                 className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-all text-center"
