@@ -1,4 +1,4 @@
-import { doc, setDoc, updateDoc, getDoc, serverTimestamp, collection } from 'firebase/firestore';
+import { collection, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export async function requestNotificationPermission(userId: string) {
@@ -10,7 +10,7 @@ export async function requestNotificationPermission(userId: string) {
         const registration = await navigator.serviceWorker.register('/sw.js');
         console.log('Service Worker registered:', registration);
       }
-      
+
       // Save token to user's document
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
@@ -31,16 +31,16 @@ export async function sendOrderNotification(userId: string, orderId: string, sta
   try {
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
-    
+
     if (!userDoc.exists()) return;
-    
+
     const userData = userDoc.data();
     if (!userData.notificationsEnabled) return;
 
     const notificationData = {
       title: 'Mise à jour de votre commande',
       body: getNotificationMessage(status),
-      icon: 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png',
+      icon: 'https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png',
       click_action: `/track-order/${orderId}`,
       orderId
     };

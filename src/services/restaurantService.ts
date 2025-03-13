@@ -48,7 +48,7 @@ export async function getNearbyRestaurants(lat: number, lng: number, radius: num
         name: data.name || 'Restaurant',
         type: data.type || 'Restaurant',
         isOpen,
-        logo: data.logo || data.coverImage || 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png',
+        logo: data.logo || data.coverImage || 'https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png',
         location: {
           lat: location.lat,
           lng: location.lng
@@ -127,7 +127,7 @@ export async function getRestaurant(restaurantId: string) {
       return {
         id: restaurantId,
         name: 'Restaurant non disponible',
-        logo: 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'
+        logo: 'https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png'
       };
     }
 
@@ -139,7 +139,7 @@ export async function getRestaurant(restaurantId: string) {
       return {
         id: restaurantId,
         name: 'Restaurant non disponible',
-        logo: 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'
+        logo: 'https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png'
       };
     }
 
@@ -155,7 +155,7 @@ export async function getRestaurant(restaurantId: string) {
     return {
       id: restaurantId,
       name: 'Restaurant non disponible',
-      logo: 'https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png'
+      logo: 'https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png'
     };
   }
 }

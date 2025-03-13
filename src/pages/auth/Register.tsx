@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, Mail, Lock, User, Phone, MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
+import { AlertCircle, ChevronLeft, Loader2, Lock, Mail, MapPin, Phone, User } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { registerRestaurant } from '../../services/authService';
 
 export default function Register() {
@@ -43,7 +43,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.name?.trim()) {
       setError('Le nom du restaurant est requis');
@@ -63,7 +63,7 @@ export default function Register() {
     }
     if (formData.password.length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères');
-      return; 
+      return;
     }
     if (!formData.phone?.trim()) {
       setError('Le téléphone est requis');
@@ -108,7 +108,7 @@ export default function Register() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
-          src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+          src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
           alt="TapEat"
           className="mx-auto h-12 w-auto"
         />

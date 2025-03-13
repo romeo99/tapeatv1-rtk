@@ -1,8 +1,8 @@
+import { AlertCircle, ChevronLeft, Loader2, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
-import { signIn } from '../../services/authService';
+import { Link, useNavigate } from 'react-router-dom';
 import BottomNavigation from '../../components/layout/BottomNavigation';
+import { signIn } from '../../services/authService';
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ export default function SignIn() {
           </button>
 
           <div className="mt-safe">
-            <img src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png" alt="TapEat" className="w-48 mx-auto brightness-0 invert" />
+            <img src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png" alt="TapEat" className="w-48 mx-auto brightness-0 invert" />
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center px-4">

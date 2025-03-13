@@ -162,7 +162,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     className="h-10 focus:outline-none hover:opacity-80 transition-opacity"
                   >
                     <img
-                      src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+                      src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
                       alt="TapEat"
                       className="h-full"
                     />

@@ -1,8 +1,8 @@
-import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
-import type { Order } from '../types/firebase';
-import { db } from '../config/firebase';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { db } from '../config/firebase';
+import type { Order } from '../types/firebase';
 
 interface DateRange {
   start: Date;
@@ -94,8 +94,8 @@ export async function getAccountingData(restaurantId: string, period: string, cu
       totalRevenue: completedOrders.reduce((sum, order) => sum + order.total, 0),
       totalTax: completedOrders.reduce((sum, order) => sum + order.tax, 0),
       orderCount: completedOrders.length,
-      averageOrderValue: completedOrders.length > 0 
-        ? completedOrders.reduce((sum, order) => sum + order.total, 0) / completedOrders.length 
+      averageOrderValue: completedOrders.length > 0
+        ? completedOrders.reduce((sum, order) => sum + order.total, 0) / completedOrders.length
         : 0,
       paymentMethodBreakdown: completedOrders.reduce((acc, order) => {
         const method = order.paymentMethod || 'unknown';
@@ -118,9 +118,9 @@ export async function getAccountingData(restaurantId: string, period: string, cu
 }
 
 export async function exportAccountingData(
-  restaurantId: string, 
-  format: 'pdf' | 'csv', 
-  period: string, 
+  restaurantId: string,
+  format: 'pdf' | 'csv',
+  period: string,
   customRange?: DateRange
 ) {
   try {
@@ -168,11 +168,11 @@ async function generatePDF(orders: Order[], metrics: any, dateRange: any, restau
   container.style.width = '800px';
   container.style.position = 'absolute';
   container.style.left = '-9999px';
-  
+
   // Add content
   container.innerHTML = `
     <div style="margin-bottom: 30px;">
-      <img src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png" style="height: 50px;" />
+      <img src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png" style="height: 50px;" />
       <div style="float: right; text-align: right;">
         <h2 style="margin: 0; color: #10B981;">${restaurant?.name || ''}</h2>
         <p style="margin: 5px 0; color: #6B7280;">${restaurant?.address || ''}</p>
@@ -212,10 +212,9 @@ async function generatePDF(orders: Order[], metrics: any, dateRange: any, restau
             <td style="padding: 8px;">${order.orderNumber}</td>
             <td style="padding: 8px; text-align: right;">${order.total.toFixed(2)} €</td>
             <td style="padding: 8px; text-align: right;">${order.tax.toFixed(2)} €</td>
-            <td style="padding: 8px;">${
-              order.paymentMethod === 'card' ? 'CB' :
-              order.paymentMethod === 'cash' ? 'ESP' : 'AP'
-            }</td>
+            <td style="padding: 8px;">${order.paymentMethod === 'card' ? 'CB' :
+      order.paymentMethod === 'cash' ? 'ESP' : 'AP'
+    }</td>
           </tr>
         `).join('')}
       </tbody>

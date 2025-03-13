@@ -74,7 +74,7 @@ export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelec
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full overflow-hidden">
                     <img
-                      src={restaurant?.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+                      src={restaurant?.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
                       alt={restaurant?.name || "Restaurant"}
                       className="w-full h-full object-cover"
                     />
@@ -139,7 +139,7 @@ export default function MenuHeader({ isFoodCourt, restaurants, onRestaurantSelec
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center flex-shrink-0 border border-emerald-500">
                   <img
-                    src={restaurant?.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+                    src={restaurant?.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
                     alt={restaurant?.name || "Restaurant"}
                     className="w-full h-full object-cover"
                   />

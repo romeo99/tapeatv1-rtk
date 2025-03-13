@@ -1,36 +1,36 @@
-import { useState, useEffect } from 'react';
-import { useLocation, NavLink, useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, collectionGroup, getDoc, doc } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../config/firebase';
-import { 
-  LayoutDashboard, 
-  UtensilsCrossed, 
-  DollarSign,
-  Package,
-  Target,
-  Percent,
+import { collectionGroup, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import {
   Award,
-  Tags, 
-  Users, 
-  Settings,
-  ChevronRight,
-  Utensils,
   Bell,
-  History,
-  X,
+  ChevronRight,
+  DollarSign,
   HelpCircle,
-  LogOut
+  History,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Percent,
+  Settings,
+  Tags,
+  Target,
+  Users,
+  Utensils,
+  UtensilsCrossed,
+  X
 } from 'lucide-react';
-import { useRestaurantContext } from '../../context/RestaurantContext';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { db } from '../../config/firebase';
+import { useAuth } from '../../context/AuthContext';
 import { useOrderContext } from '../../context/OrderContext';
+import { useRestaurantContext } from '../../context/RestaurantContext';
 import { signOut } from '../../services/authService';
 
 const navigation = [
-  { 
-    name: 'Dashboard', 
-    href: '/admin', 
-    icon: LayoutDashboard 
+  {
+    name: 'Dashboard',
+    href: '/admin',
+    icon: LayoutDashboard
   },
   {
     name: 'Commandes en direct',
@@ -54,8 +54,8 @@ const navigation = [
     soon: true,
     disabled: true
   },
-  { 
-    name: 'Menu', 
+  {
+    name: 'Menu',
     href: '/admin/menu',
     icon: UtensilsCrossed,
     subItems: [
@@ -71,24 +71,24 @@ const navigation = [
     icon: Target,
     subItems: [
       { name: 'Promotions', href: '/admin/marketing/promotions', icon: Percent },
-      { 
-        name: 'Programme fidélité', 
-        href: '/admin/marketing/loyalty', 
+      {
+        name: 'Programme fidélité',
+        href: '/admin/marketing/loyalty',
         icon: Award,
         soon: true,
-        disabled: true 
+        disabled: true
       }
     ]
   },
-  { 
-    name: 'Personnel', 
-    href: '/admin/staff', 
-    icon: Users 
+  {
+    name: 'Personnel',
+    href: '/admin/staff',
+    icon: Users
   },
-  { 
-    name: 'Paramètres', 
-    href: '/admin/settings', 
-    icon: Settings 
+  {
+    name: 'Paramètres',
+    href: '/admin/settings',
+    icon: Settings
   },
   {
     name: 'Support',
@@ -120,20 +120,20 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
   };
 
   // Calculate total active orders
-  const totalActiveOrders = orders.filter(o => 
+  const totalActiveOrders = orders.filter(o =>
     ['pending', 'preparing', 'ready'].includes(o.status)
   ).length;
 
-  const isActive = (href: string) => 
+  const isActive = (href: string) =>
     location.pathname === href || location.pathname.startsWith(`${href}/`);
 
   const isSubMenuOpen = (item: any) =>
-    openMenus.includes(item.name) || 
+    openMenus.includes(item.name) ||
     item.subItems?.some((subItem: any) => isActive(subItem.href));
 
   const toggleMenu = (menuName: string) => {
-    setOpenMenus(prev => 
-      prev.includes(menuName) 
+    setOpenMenus(prev =>
+      prev.includes(menuName)
         ? prev.filter(name => name !== menuName)
         : [...prev, menuName]
     );
@@ -181,12 +181,12 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
     <div className="h-full bg-white flex flex-col">
       <div className="h-16 flex items-center justify-between px-4 border-b">
         <img
-          src={restaurant?.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+          src={restaurant?.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
           alt={restaurant?.name || "TapEat"}
           className="h-10"
         />
         {onClose && (
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
           >
@@ -202,11 +202,10 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
               <>
                 <button
                   onClick={() => toggleMenu(item.name)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-base font-semibold transition-colors ${
-                    isSubMenuOpen(item)
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-base font-semibold transition-colors ${isSubMenuOpen(item)
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <item.icon className="h-6 w-6" />
                   <span className="flex-1">{item.name}</span>
@@ -215,10 +214,9 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                       {totalActiveOrders}
                     </span>
                   )}
-                  <ChevronRight 
-                    className={`h-4 w-4 transition-transform ${
-                      isSubMenuOpen(item) ? 'rotate-90' : ''
-                    }`}
+                  <ChevronRight
+                    className={`h-4 w-4 transition-transform ${isSubMenuOpen(item) ? 'rotate-90' : ''
+                      }`}
                   />
                 </button>
                 <div className={`ml-10 mt-2 space-y-2 ${isSubMenuOpen(item) ? 'block' : 'hidden'}`}>
@@ -234,8 +232,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                       }}
                       to={subItem.href}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                          subItem.disabled ? 'opacity-50 cursor-not-allowed' :
+                        `flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-colors ${subItem.disabled ? 'opacity-50 cursor-not-allowed' :
                           isActive
                             ? 'bg-emerald-50 text-emerald-600'
                             : 'text-gray-600 hover:bg-gray-50'
@@ -265,8 +262,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                   }
                 }}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-semibold transition-colors ${
-                    item.disabled ? 'opacity-50 cursor-not-allowed' :
+                  `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-semibold transition-colors ${item.disabled ? 'opacity-50 cursor-not-allowed' :
                     isActive
                       ? 'bg-emerald-50 text-emerald-600'
                       : 'text-gray-600 hover:bg-gray-50'

@@ -1,11 +1,11 @@
-import { useLocation, NavLink } from 'react-router-dom';
-import { Building2, Users, DollarSign, Store, ChevronRight, LogOut } from 'lucide-react';
+import { Building2, ChevronRight, DollarSign, LogOut, Store, Users } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
 
 const navigation = [
-  { 
-    name: 'Dashboard', 
-    href: '/superadmin', 
-    icon: Building2 
+  {
+    name: 'Dashboard',
+    href: '/superadmin',
+    icon: Building2
   },
   {
     name: 'Food Courts',
@@ -36,7 +36,7 @@ interface SuperAdminSidebarProps {
 export default function SuperAdminSidebar({ onClose }: SuperAdminSidebarProps) {
   const location = useLocation();
 
-  const isActive = (href: string) => 
+  const isActive = (href: string) =>
     location.pathname === href || location.pathname.startsWith(`${href}/`);
 
   return (
@@ -44,7 +44,7 @@ export default function SuperAdminSidebar({ onClose }: SuperAdminSidebarProps) {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b">
         <img
-          src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+          src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
           alt="TapEat"
           className="h-8"
         />
@@ -58,10 +58,9 @@ export default function SuperAdminSidebar({ onClose }: SuperAdminSidebarProps) {
             to={item.href}
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                isActive
-                  ? 'bg-emerald-50 text-emerald-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+              `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${isActive
+                ? 'bg-emerald-50 text-emerald-600'
+                : 'text-gray-600 hover:bg-gray-50'
               }`
             }
           >

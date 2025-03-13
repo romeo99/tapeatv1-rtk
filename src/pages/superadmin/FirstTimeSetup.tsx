@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Loader2, AlertCircle } from 'lucide-react';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { AlertCircle, Loader2, Lock, Mail, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../config/firebase';
 
 export default function FirstTimeSetup() {
@@ -39,7 +39,7 @@ export default function FirstTimeSetup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
       return;
@@ -113,7 +113,7 @@ export default function FirstTimeSetup() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
-          src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+          src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
           alt="TapEat"
           className="mx-auto h-12 w-auto"
         />

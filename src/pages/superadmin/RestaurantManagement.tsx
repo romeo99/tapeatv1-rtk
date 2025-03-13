@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { Edit2, Eye, Plus, Power, Search, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Power, Eye, Calendar, DollarSign } from 'lucide-react';
-import { getAllRestaurants, deleteRestaurant, updateRestaurantStatus, impersonateRestaurant } from '../../services/superadminService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SuperAdminLayout from '../../components/superadmin/SuperAdminLayout';
+import { deleteRestaurant, getAllRestaurants, impersonateRestaurant, updateRestaurantStatus } from '../../services/superadminService';
 
 const FILTERS = {
   status: [
@@ -94,13 +94,13 @@ export default function RestaurantManagement() {
 
   const filteredRestaurants = restaurants.filter(restaurant => {
     // Filtre de recherche
-    const matchesSearch = 
+    const matchesSearch =
       restaurant.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       restaurant.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       restaurant.address?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Filtre de statut
-    const matchesStatus = 
+    const matchesStatus =
       filters.status === 'all' ||
       (filters.status === 'active' && restaurant.isOpen) ||
       (filters.status === 'inactive' && !restaurant.isOpen);
@@ -293,18 +293,18 @@ export default function RestaurantManagement() {
                 <tr key={restaurant.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div 
+                      <div
                         className="flex-shrink-0 h-10 w-10 cursor-pointer"
                         onClick={() => navigate(`/superadmin/restaurants/${restaurant.id}`)}
                       >
                         <img
-                          src={restaurant.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+                          src={restaurant.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
                           alt={restaurant.name}
                           className="h-10 w-10 rounded-lg object-cover"
                         />
                       </div>
                       <div className="ml-4">
-                        <div 
+                        <div
                           className="text-sm font-medium text-gray-900 hover:text-emerald-600 cursor-pointer"
                           onClick={() => navigate(`/superadmin/restaurants/${restaurant.id}`)}
                         >
@@ -329,11 +329,10 @@ export default function RestaurantManagement() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      restaurant.isOpen
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${restaurant.isOpen
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
-                    }`}>
+                      }`}>
                       {restaurant.isOpen ? 'Ouvert' : 'Fermé'}
                     </span>
                   </td>
@@ -364,11 +363,10 @@ export default function RestaurantManagement() {
                           e.stopPropagation();
                           handleStatusToggle(restaurant.id, restaurant.isOpen);
                         }}
-                        className={`p-2 rounded-lg flex-shrink-0 ${
-                          restaurant.isOpen
+                        className={`p-2 rounded-lg flex-shrink-0 ${restaurant.isOpen
                             ? 'text-red-600 hover:bg-red-50'
                             : 'text-green-600 hover:bg-green-50'
-                        }`}
+                          }`}
                         title={restaurant.isOpen ? 'Fermer' : 'Ouvrir'}
                       >
                         <Power className="h-5 w-5" />

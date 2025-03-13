@@ -1,6 +1,6 @@
+import { AlertCircle, Loader2, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { signInAsSuperAdmin } from '../../services/superadminService';
 
 export default function SuperAdminLogin() {
@@ -31,7 +31,7 @@ export default function SuperAdminLogin() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
-          src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+          src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
           alt="TapEat"
           className="mx-auto h-12 w-auto"
         />

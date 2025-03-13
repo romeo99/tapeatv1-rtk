@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { Download, Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { X, Download, Plus } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -66,7 +66,7 @@ export default function InstallPWA() {
 
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
       setShowPrompt(false);
@@ -104,11 +104,11 @@ export default function InstallPWA() {
       <div className="flex items-center justify-between gap-4 p-4 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent" />
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400" />
-        
+
         <div className="flex items-center gap-4 z-10">
           <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
             <img
-              src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+              src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
               alt="TapEat"
               className="w-8 h-8 object-contain"
             />

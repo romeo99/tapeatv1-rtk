@@ -1,5 +1,5 @@
-import { useState, ReactNode } from 'react';
-import { Menu as MenuIcon, X } from 'lucide-react';
+import { Menu as MenuIcon } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 import SuperAdminSidebar from './SuperAdminSidebar';
 
 interface SuperAdminLayoutProps {
@@ -13,16 +13,15 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {isMobileSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed lg:sticky top-0 h-screen bg-white shadow-lg transition-all duration-300 ease-in-out z-50 w-64 ${
-        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}>
+      <div className={`fixed lg:sticky top-0 h-screen bg-white shadow-lg transition-all duration-300 ease-in-out z-50 w-64 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}>
         <SuperAdminSidebar onClose={() => setIsMobileSidebarOpen(false)} />
       </div>
 
@@ -38,7 +37,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
               <MenuIcon className="h-6 w-6" />
             </button>
             <img
-              src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+              src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
               alt="TapEat"
               className="h-8"
             />

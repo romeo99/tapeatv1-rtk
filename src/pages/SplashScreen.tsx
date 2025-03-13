@@ -16,12 +16,12 @@ export default function SplashScreen() {
     <div className="min-h-screen bg-emerald-500 flex flex-col items-center justify-center p-4">
       <div className="w-64 mb-8 animate-pulse">
         <img
-          src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+          src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
           alt="TapEAT"
           className="w-full h-auto brightness-0 invert" // Ajout des filtres pour rendre le logo blanc
         />
       </div>
-      
+
       <div className="text-white text-center">
         <h1 className="text-2xl font-bold mb-2">Powered by TapEAT</h1>
         <p className="text-lg opacity-90">La borne nouvelle génération</p>

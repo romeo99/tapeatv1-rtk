@@ -1,5 +1,5 @@
-import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function UnauthenticatedProfile() {
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ export default function UnauthenticatedProfile() {
       <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col">
         <div className="relative flex-1 flex flex-col">
           <img
-            src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+            src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
             alt="TapEat"
             className="w-48 mx-auto mt-safe brightness-0 invert"
           />
@@ -30,16 +30,16 @@ export default function UnauthenticatedProfile() {
             <p className="text-lg mb-8 max-w-md">
               Scannez simplement le QR code du restaurant et voilà ! Accédez instantanément aux menus
             </p>
-            
+
             <div className="w-full max-w-xs space-y-4">
-              <button 
+              <button
                 onClick={() => navigate('/signup')}
                 className="w-full bg-emerald-500 text-white py-3 rounded-xl font-medium"
               >
                 S'inscrire
               </button>
               <button
-                onClick={() => navigate('/signin')} 
+                onClick={() => navigate('/signin')}
                 className="w-full bg-white text-gray-900 py-3 rounded-xl font-medium"
               >
                 Se connecter

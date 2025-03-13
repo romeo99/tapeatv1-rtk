@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { ChevronLeft, Clock, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, MapPin, Clock, Store } from 'lucide-react';
-import { getFoodCourt } from '../../services/foodCourtService';
-import { getRestaurant } from '../../services/restaurantService';
-import { useCart } from '../../context/CartContext';
 import Cart from '../../components/Cart';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useCart } from '../../context/CartContext';
+import { getFoodCourt } from '../../services/foodCourtService';
+import { getRestaurant } from '../../services/restaurantService';
 import type { FoodCourt } from '../../types/foodCourt';
 
 export default function FoodCourtDetails() {
@@ -31,7 +31,7 @@ export default function FoodCourtDetails() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const foodCourtData = await getFoodCourt(foodCourtId!);
       setFoodCourt(foodCourtData);
 
@@ -55,7 +55,7 @@ export default function FoodCourtDetails() {
 
       // Filter out failed restaurant loads and set only successful ones
       const validRestaurants = restaurantsData
-        .filter((result): result is PromiseFulfilledResult<any> => 
+        .filter((result): result is PromiseFulfilledResult<any> =>
           result.status === 'fulfilled' && result.value !== null
         )
         .map(result => result.value);
@@ -124,7 +124,7 @@ export default function FoodCourtDetails() {
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-2">
                 <img
-                  src={foodCourt.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+                  src={foodCourt.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
                   alt={foodCourt.name}
                   className="w-16 h-16 rounded-full border-4 border-white shadow-md"
                 />

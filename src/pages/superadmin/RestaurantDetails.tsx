@@ -221,7 +221,7 @@ export default function RestaurantDetails() {
             </button>
             <div className="flex items-center gap-6">
               <img
-                src={restaurant.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+                src={restaurant.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
                 alt={restaurant.name}
                 className="w-16 h-16 rounded-lg object-cover"
               />
@@ -229,8 +229,8 @@ export default function RestaurantDetails() {
                 <h1 className="text-2xl font-bold text-gray-900">{restaurant.name}</h1>
                 <div className="flex items-center gap-4 mt-1">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${restaurant.isOpen
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
                     }`}>
                     {restaurant.isOpen ? 'Ouvert' : 'Fermé'}
                   </span>
@@ -254,8 +254,8 @@ export default function RestaurantDetails() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                      ? 'border-emerald-500 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-emerald-500 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                 >
                   {tab.label}
@@ -554,8 +554,8 @@ export default function RestaurantDetails() {
                       key={tab.id}
                       onClick={() => setActiveOrderTab(tab.id)}
                       className={`py-4 px-6 font-medium text-sm ${activeOrderTab === tab.id
-                          ? 'border-b-2 border-emerald-500 text-emerald-600'
-                          : 'text-gray-500 hover:text-gray-700'
+                        ? 'border-b-2 border-emerald-500 text-emerald-600'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                     >
                       {tab.label}
@@ -579,8 +579,8 @@ export default function RestaurantDetails() {
                         <div className="flex items-center gap-2 mt-1">
                           <span className="font-medium">{order.total.toFixed(2)} €</span>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
+                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
                             }`}>
                             {order.status}
                           </span>

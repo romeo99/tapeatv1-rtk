@@ -12,7 +12,7 @@ export function RestaurantHeader({ name, rating, totalRatings }: RestaurantHeade
       <div className="flex gap-4">
         <div className="w-[72px] h-[72px] rounded-full bg-white flex items-center justify-center p-3 shadow-lg -mt-[36px] border-2 border-emerald-500">
           <img
-            src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+            src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
             alt="TapEat"
             className="w-full h-full object-contain"
           />

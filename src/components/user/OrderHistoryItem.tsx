@@ -1,10 +1,10 @@
-import { ChevronDown, UtensilsCrossed, ShoppingBag, Bike, Star } from 'lucide-react';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { Bike, ShoppingBag, Star, UtensilsCrossed } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import RatingModal from '../RatingModal';
+import { db } from '../../config/firebase';
 import { useCart } from '../../context/CartContext';
-import { useState, useEffect } from 'react';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase'; 
+import RatingModal from '../RatingModal';
 
 const orderTypeIcons = {
   dine_in: { icon: UtensilsCrossed, label: 'Sur place' },
@@ -93,7 +93,7 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
 
       // Add items to cart
       addItems(itemsWithRestaurantId);
-      
+
       // Navigate to restaurant menu
       navigate(`/restaurant?restaurantId=${order.restaurantInfo.id}`);
     } catch (err) {
@@ -108,7 +108,7 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
   };
 
   return (
-    <div 
+    <div
       onClick={handleClick}
       className="bg-white rounded-xl overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-all"
     >
@@ -123,7 +123,7 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <img
-              src={order.restaurantInfo?.logo || "https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"}
+              src={order.restaurantInfo?.logo || "https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"}
               alt={order.restaurantInfo?.name || "Restaurant"}
               className="w-12 h-12 rounded-lg object-cover"
             />
@@ -156,17 +156,16 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
         {/* Order Number & Status */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-base font-medium">#{order.orderNumber}</span>
-          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-            currentStatus === 'completed' ? 'bg-emerald-100 text-emerald-700' : 
-            currentStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
-            'bg-gray-100 text-gray-700'
-          }`}>
+          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${currentStatus === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+              currentStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
+                'bg-gray-100 text-gray-700'
+            }`}>
             {currentStatus === 'completed' ? 'Terminée' :
-             currentStatus === 'cancelled' ? 'Annulée' :
-             currentStatus === 'pending' ? 'En attente' :
-             currentStatus === 'preparing' ? 'En préparation' :
-             currentStatus === 'ready' ? 'Prête' :
-             currentStatus}
+              currentStatus === 'cancelled' ? 'Annulée' :
+                currentStatus === 'pending' ? 'En attente' :
+                  currentStatus === 'preparing' ? 'En préparation' :
+                    currentStatus === 'ready' ? 'Prête' :
+                      currentStatus}
           </span>
         </div>
 
@@ -223,7 +222,7 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
                     const restaurantRef = doc(db, 'restaurants', order.restaurantInfo.id);
                     const restaurantDoc = await getDoc(restaurantRef);
                     const googleUrl = restaurantDoc.data()?.googleUrl;
-                    
+
                     if (!googleUrl) {
                       alert('Le restaurant n\'a pas encore fourni de lien pour les avis');
                       return;

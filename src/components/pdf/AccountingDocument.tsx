@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import type { Order } from '../../types/firebase';
 
 const styles = StyleSheet.create({
@@ -100,7 +100,7 @@ export function AccountingDocument({ restaurant, orders, metrics, dateRange }: A
         {/* Header */}
         <View style={styles.header}>
           <Image
-            src="https://tapeat.fr/wp-content/uploads/2024/06/TapEart-2-2048x632.png"
+            src="https://i.postimg.cc/TPbpkRnD/Tap-Eart-2.png"
             style={styles.logo}
           />
           <View style={styles.restaurantInfo}>
@@ -146,8 +146,8 @@ export function AccountingDocument({ restaurant, orders, metrics, dateRange }: A
               <Text style={styles.col3}>{order.total.toFixed(2)} €</Text>
               <Text style={styles.col4}>{order.tax.toFixed(2)} €</Text>
               <Text style={styles.col5}>
-                {order.paymentMethod === 'card' ? 'CB' : 
-                 order.paymentMethod === 'cash' ? 'ESP' : 'AP'}
+                {order.paymentMethod === 'card' ? 'CB' :
+                  order.paymentMethod === 'cash' ? 'ESP' : 'AP'}
               </Text>
             </View>
           ))}
