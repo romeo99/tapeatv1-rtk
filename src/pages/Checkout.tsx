@@ -401,30 +401,8 @@ export default function Checkout() {
         throw new Error('Erreur lors de la création de la commande');
       }
 
-      if (selectedMethod === 'card') {
+      if ((selectedMethod === 'card' && !isRegisterMode) || selectedMethod === 'apple_pay') {
         await processPayment();
-      }
-
-      if (isRegisterMode && selectedMethod === 'apple_pay') {
-        clearCart();
-        localStorage.removeItem('foodCourtId');
-        localStorage.removeItem('deliveryInfo');
-        if (isFoodCourtOrder && foodCourtId) {
-          navigate(`/order-confirmation${isRegisterMode ? '&mode=register' : ''}`, {
-            state: { foodCourtId },
-            replace: true
-          });
-        } else {
-          navigate(`/order-confirmation${isRegisterMode ? '&mode=register' : ''}`, {
-            state: { orderId, foodCourtId },
-            replace: true
-          });
-        }
-        setLoading(false);
-      }
-
-      if (!isRegisterMode && selectedMethod === 'apple_pay') {
-        processPayment()
       } else {
         clearCart();
         localStorage.removeItem('foodCourtId');
