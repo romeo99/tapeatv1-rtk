@@ -388,6 +388,8 @@ export default function Checkout() {
     }
   };
 
+  console.log('selectedMethod', selectedMethod);
+  console.log('isRegisterMode', isRegisterMode);
   const handlePayment = async () => {
     setLoading(true);
 
@@ -401,7 +403,9 @@ export default function Checkout() {
 
       if (selectedMethod === 'card') {
         await processPayment();
-      } else if (isRegisterMode && selectedMethod === 'apple_pay') {
+      }
+
+      if (isRegisterMode && selectedMethod === 'apple_pay') {
         clearCart();
         localStorage.removeItem('foodCourtId');
         localStorage.removeItem('deliveryInfo');
@@ -417,10 +421,11 @@ export default function Checkout() {
           });
         }
         setLoading(false);
-      } else if (!isRegisterMode && selectedMethod === 'apple_pay') {
+      }
+
+      if (!isRegisterMode && selectedMethod === 'apple_pay') {
         processPayment()
-      }
-      else {
+      } else {
         clearCart();
         localStorage.removeItem('foodCourtId');
         localStorage.removeItem('deliveryInfo');
@@ -437,6 +442,7 @@ export default function Checkout() {
         }
         setLoading(false);
       }
+      setLoading(false);
     } catch (error) {
       console.error('Order error:', error);
       setError('Une erreur est survenue lors de la commande.');
