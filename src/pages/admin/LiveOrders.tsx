@@ -68,7 +68,7 @@ export default function LiveOrders() {
   });
   const [newOrders, setNewOrders] = useState<string[]>([]);
   const previousOrdersRef = useRef<string[]>([]);
-  
+
   const { contentRef, orderToPrint } = useOrderNotification();
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
@@ -583,8 +583,8 @@ export default function LiveOrders() {
                               {item.menuOptions.side && (
                                 <p>Accompagnement : {item.menuOptions.side}</p>
                               )}
-                              {item.menuOptions.sauces?.length > 0 && (
-                                <p>Sauces : {item.menuOptions.sauces.join(', ')}</p>
+                              {item.menuOptions.sauces?.length! > 0 && (
+                                <p>Sauces : {item.menuOptions.sauces!.join(', ')}</p>
                               )}
                             </div>
                           )}

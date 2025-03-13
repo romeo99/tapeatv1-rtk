@@ -1,53 +1,19 @@
 import { useEffect, useState } from 'react';
 import { getRestaurant } from '../services/restaurantService';
-import { getApplicationFee } from '../services/superadminService';
 import { CartItem } from '../types';
 import { OrderItem } from '../types/firebase';
 
 interface OrderSummaryProps extends React.HTMLAttributes<HTMLDivElement> {
   restaurants?: Record<string, { items: CartItem[]; amount: number }>;
   items: OrderItem[];
-  //subtotal: number;
-  //total: number;
+  serviceFees: number;
+  subtotal: number;
+  total: number;
   themeColor?: string;
 }
 
-export default function OrderSummary({ restaurants, items, themeColor, ...props }: OrderSummaryProps) {
-  const [applicationFee, setApplicationFee] = useState<number>(0);
-  const [subtotal, setSubtotal] = useState<number>(0);
-  const [serviceFees, setServiceFees] = useState<number>(0);
-  const [totalPrice, setTotalPrice] = useState<number>(0);
+export default function OrderSummary({ restaurants, items, serviceFees, subtotal, total, themeColor, ...props }: OrderSummaryProps) {
   const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchFee = async () => {
-      if (!mounted) return;
-      try {
-        const fee = await getApplicationFee();
-        if (mounted) {
-          setApplicationFee(fee);
-        }
-      } catch (err) {
-        if (mounted) {
-          console.error('Error fetching application fee:', err);
-        }
-      }
-    };
-    fetchFee();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const newSubtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const newServiceFees = newSubtotal * applicationFee;
-    const newTotalPrice = newSubtotal + newServiceFees;
-    setSubtotal(newSubtotal);
-    setServiceFees(newServiceFees);
-    setTotalPrice(newTotalPrice);
-  }, [items, applicationFee]);
 
   useEffect(() => {
     const loadRestaurantNames = async () => {
@@ -161,7 +127,7 @@ export default function OrderSummary({ restaurants, items, themeColor, ...props 
                         </div>
                       )}
                     </div>
-                    <span>{amount.toFixed(2)} €</span>
+                    <span>{(item.price * item.quantity).toFixed(2)} €</span>
                   </div>
                 </div>
               </div>
@@ -248,7 +214,7 @@ export default function OrderSummary({ restaurants, items, themeColor, ...props 
           </div>
           <div className="flex justify-between mt-3 pt-3 border-t">
             <div className="font-semibold text-lg">Total</div>
-            <div className="font-semibold text-lg">{totalPrice.toFixed(2)}€</div>
+            <div className="font-semibold text-lg">{total.toFixed(2)}€</div>
           </div>
         </div>
         {/* <div className="p-4 bg-gray-50">

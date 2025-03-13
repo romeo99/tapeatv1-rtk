@@ -3,9 +3,10 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getActivePromotions } from '../services/promotionService';
+import { getApplicationFee } from '../services/superadminService';
+import { CartItem, MenuOptions } from '../types';
 import type { Promotion } from '../types/firebase';
 import { useRestaurantContext } from './RestaurantContext';
-import { CartItem, MenuOptions } from '../types';
 
 interface CartContextType {
   items: CartItem[];
@@ -16,6 +17,9 @@ interface CartContextType {
   clearCart: () => void;
   isCartOpen: boolean;
   toggleCart: () => void;
+  applicationFee: number,
+  serviceFees: number,
+  subtotal: number,
   total: number;
   isFoodCourtOrder: boolean;
   foodCourtId?: string | null;
@@ -39,6 +43,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [scheduledTime, setScheduledTime] = useState<{ date: string; time: string } | null>(null);
   const location = useLocation();
   const [foodCourtId, setFoodCourtId] = useState<string | null>(null);
+
+  const [applicationFee, setApplicationFee] = useState<number>(0);
+
+  //Récupération des frais de l'application
+  useEffect(() => {
+    let mounted = true;
+    const fetchFee = async () => {
+      if (!mounted) return;
+      try {
+        const fee = await getApplicationFee();
+        if (mounted) {
+          setApplicationFee(fee);
+        }
+      } catch (err) {
+        if (mounted) {
+          console.error('Error fetching application fee:', err);
+        }
+      }
+    };
+    fetchFee();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Cleanup function to remove food court data
   const cleanupFoodCourtData = () => {
@@ -314,24 +342,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const toggleCart = () => setIsCartOpen((prev) => !prev);
 
-  const total =
+  const subtotal =
     items && Array.isArray(items)
       ? items.reduce((sum, item) => {
-          if (item.promotionLabel === '1 offert') {
-            // Pour chaque paire d'articles, ne facturer qu'un seul
-            return sum + Math.ceil(item.quantity / 2) * item.price;
-          }
-          if (item.promotionLabel?.includes('sur le 2ème')) {
-            const pairs = Math.floor(item.quantity / 2);
-            const remainingItems = item.quantity % 2;
-            const regularPrice = item.originalPrice || item.price;
-            const discountedPrice = item.price;
+        if (item.promotionLabel === '1 offert') {
+          // Pour chaque paire d'articles, ne facturer qu'un seul
+          return sum + Math.ceil(item.quantity / 2) * item.price;
+        }
+        if (item.promotionLabel?.includes('sur le 2ème')) {
+          const pairs = Math.floor(item.quantity / 2);
+          const remainingItems = item.quantity % 2;
+          const regularPrice = item.originalPrice || item.price;
+          const discountedPrice = item.price;
 
-            return sum + pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice;
-          }
-          return sum + item.price * item.quantity;
-        }, 0)
+          return sum + pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice;
+        }
+        return sum + item.price * item.quantity;
+      }, 0)
       : 0;
+
+  const serviceFees = subtotal * applicationFee;
+  const total = subtotal + serviceFees
 
   return (
     <CartContext.Provider
@@ -344,6 +375,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         isCartOpen,
         toggleCart,
+        applicationFee,
+        serviceFees,
+        subtotal,
         total,
         isFoodCourtOrder,
         foodCourtId,

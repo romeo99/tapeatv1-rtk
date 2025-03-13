@@ -273,16 +273,16 @@ export default function TrackOrder() {
                   <div key={step.id} className="flex flex-col items-center">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${isCompleted ? 'bg-emerald-500 text-white scale-110 transform' :
-                          isActive ? 'bg-emerald-100 text-emerald-500 scale-110 transform animate-pulse' :
-                            'bg-gray-200 text-gray-400'
+                        isActive ? 'bg-emerald-100 text-emerald-500 scale-110 transform animate-pulse' :
+                          'bg-gray-200 text-gray-400'
                         }`}
                     >
                       <StepIcon className={`h-4 w-4 ${isActive ? 'animate-bounce transition-transform duration-500' : ''
                         }`} />
                     </div>
                     <span className={`mt-2 text-xs text-center transition-colors duration-500 ${isActive ? 'text-emerald-500 font-medium' :
-                        isCompleted ? 'text-gray-900' :
-                          'text-gray-400'
+                      isCompleted ? 'text-gray-900' :
+                        'text-gray-400'
                       }`}>
                       {step.label}
                     </span>
@@ -310,6 +310,9 @@ export default function TrackOrder() {
 
         <OrderSummary
           items={order.items}
+          subtotal={order.subtotal}
+          serviceFees={order.total - order.subtotal}
+          total={order.total}
         />
       </div>
     </div>

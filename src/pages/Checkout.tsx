@@ -11,7 +11,6 @@ import OrderSummary from '../components/OrderSummary';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { createFoodCourtOrder, createOrder } from '../services/orderService';
-import { getApplicationFee } from '../services/superadminService';
 import { Restaurant } from '../types/firebase';
 import { getSuggestionGroups } from '../utils/suggestionEngine';
 
@@ -20,15 +19,11 @@ const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxV
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
+  const { items, applicationFee, serviceFees, subtotal, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
   //const { user } = useAuth();
   const { themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [applicationFee, setApplicationFee] = useState<number>(0);
-  const [subtotal, setSubtotal] = useState<number>(0);
-  const [serviceFees, setServiceFees] = useState<number>(0);
-  const [totalPrice, setTotalPrice] = useState<number>(0);
 
 
   const [selectedMethod, setSelectedMethod] = useState<string>('card');
@@ -75,43 +70,6 @@ export default function Checkout() {
       setSelectedMethod('cash');
     }
   }, [allowedMethods, selectedMethod, restaurantData?.id]);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchFee = async () => {
-      if (!mounted) return;
-      setLoading(true);
-      try {
-        const fee = await getApplicationFee();
-        if (mounted) {
-          setApplicationFee(fee);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError('Failed to fetch application fee');
-          console.error('Error fetching application fee:', err);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-    fetchFee();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Calculate subtotal, service fees, and total price when items or application fee changes
-  useEffect(() => {
-    const newSubtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const newServiceFees = newSubtotal * applicationFee;
-    const newTotalPrice = newSubtotal + newServiceFees;
-    setSubtotal(newSubtotal);
-    setServiceFees(newServiceFees);
-    setTotalPrice(newTotalPrice);
-  }, [items, applicationFee]);
 
   /* if (!user) {
     window.location.href = '/signin?redirect=checkout';
@@ -350,7 +308,7 @@ export default function Checkout() {
         restaurantOrders,
         type: orderType.type,
         subtotal: parseFloat(subtotal.toFixed(2)),
-        total: parseFloat(totalPrice.toFixed(2)),
+        total: parseFloat(total.toFixed(2)),
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
         scheduledTime,
@@ -375,7 +333,7 @@ export default function Checkout() {
         })),
         type: orderType.type,
         subtotal: parseFloat(subtotal.toFixed(2)),
-        total: parseFloat(totalPrice.toFixed(2)),
+        total: parseFloat(total.toFixed(2)),
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
         scheduledTime,
@@ -531,8 +489,9 @@ export default function Checkout() {
           <OrderSummary
             restaurants={restaurantItems}
             items={items}
-            //subtotal={subtotal}
-            //total={total}
+            serviceFees={serviceFees}
+            subtotal={subtotal}
+            total={total}
             themeColor={themeColor}
           />
         </div>
@@ -575,7 +534,7 @@ export default function Checkout() {
 
         <div className="sticky bottom-0 left-0 right-0 pb-safe bg-gray-50 pt-2">
           <button onClick={handlePayment} disabled={loading /* || !user */ || items.length === 0} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>
-            {loading ? 'Traitement en cours...' : `Payer ${totalPrice.toFixed(2)} €`}
+            {loading ? 'Traitement en cours...' : `Payer ${total.toFixed(2)} €`}
           </button>
         </div>
       </div>

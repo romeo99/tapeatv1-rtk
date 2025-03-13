@@ -118,9 +118,10 @@ export default function OrderConfirmation() {
 
         <OrderSummary
           items={orderDetails.items}
-          //subtotal={orderDetails.subtotal}
+          subtotal={orderDetails.subtotal}
+          serviceFees={orderDetails.total - orderDetails.subtotal}
           //tax={orderDetails.tax}
-          //total={orderDetails.total}
+          total={orderDetails.total}
           themeColor={currentThemeColor}
         />
 

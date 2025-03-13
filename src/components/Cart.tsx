@@ -5,51 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { getRestaurant } from '../services/restaurantService';
-import { getApplicationFee } from '../services/superadminService';
 
 export default function Cart() {
   const cartRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { themeColor } = useRestaurantContext();
-  const { items, isCartOpen, toggleCart, updateQuantity, removeItem, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
+  const { items, isCartOpen, toggleCart, updateQuantity, removeItem, scheduledTime, isFoodCourtOrder, foodCourtId, total, subtotal, serviceFees } = useCart();
   const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const [applicationFee, setApplicationFee] = useState<number>(0);
-  const [subtotal, setSubtotal] = useState<number>(0);
-  const [serviceFees, setServiceFees] = useState<number>(0);
-  const [totalPrice, setTotalPrice] = useState<number>(0);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchFee = async () => {
-      if (!mounted) return;
-      try {
-        const fee = await getApplicationFee();
-        if (mounted) {
-          setApplicationFee(fee);
-        }
-      } catch (err) {
-        if (mounted) {
-          console.error('Error fetching application fee:', err);
-        }
-      }
-    };
-    fetchFee();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const newSubtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const newServiceFees = newSubtotal * applicationFee;
-    const newTotalPrice = newSubtotal + newServiceFees;
-    setSubtotal(newSubtotal);
-    setServiceFees(newServiceFees);
-    setTotalPrice(newTotalPrice);
-  }, [items, applicationFee]);
 
   useEffect(() => {
     const loadRestaurantNames = async () => {
@@ -267,7 +231,7 @@ export default function Cart() {
               <div className="flex items-center justify-between mb-4">
                 <span className="font-medium">Total</span>
                 <span className="font-semibold" style={{ color: themeColor }}>
-                  {totalPrice.toFixed(2)} €
+                  {total.toFixed(2)} €
                 </span>
               </div>
               <button onClick={handleCheckout} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>
