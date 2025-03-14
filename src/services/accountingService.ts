@@ -92,7 +92,9 @@ export async function getAccountingData(restaurantId: string, period: string, cu
     // Calculate metrics
     const metrics = {
       totalRevenue: completedOrders.reduce((sum, order) => sum + order.total, 0),
-      totalTax: completedOrders.reduce((sum, order) => sum + order.tax, 0),
+      totalComptoir: completedOrders
+        .filter(order => order.table === 'caisse')
+        .reduce((sum, order) => sum + order.total, 0),
       orderCount: completedOrders.length,
       averageOrderValue: completedOrders.length > 0
         ? completedOrders.reduce((sum, order) => sum + order.total, 0) / completedOrders.length
@@ -140,13 +142,13 @@ export async function exportAccountingData(
 }
 
 function generateCSV(orders: Order[], metrics: any, dateRange: { startDate: Date; endDate: Date }) {
-  const headers = ['Date', 'N° Commande', 'Type', 'Montant HT', 'TVA', 'Total', 'Paiement'];
+  const headers = ['Date', 'N° Commande', 'Type'/* , 'Montant HT', 'TVA' */, 'Total', 'Paiement'];
   const rows = orders.map(order => [
     new Date(order.createdAt).toLocaleDateString('fr-FR'),
     order.orderNumber,
     order.type,
-    (order.total - order.tax).toFixed(2),
-    order.tax.toFixed(2),
+    /* (order.total - order.tax).toFixed(2),
+    order.tax.toFixed(2), */
     order.total.toFixed(2),
     order.paymentMethod
   ]);
@@ -155,7 +157,7 @@ function generateCSV(orders: Order[], metrics: any, dateRange: { startDate: Date
   rows.push([]);
   rows.push(['Période', `${dateRange.startDate.toLocaleDateString()} - ${dateRange.endDate.toLocaleDateString()}`]);
   rows.push(['CA Total', '', '', '', '', metrics.totalRevenue.toFixed(2)]);
-  rows.push(['TVA Totale', '', '', '', '', metrics.totalTax.toFixed(2)]);
+  /* rows.push(['TVA Totale', '', '', '', '', metrics.totalTax.toFixed(2)]); */
 
   const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
   return new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -189,10 +191,6 @@ async function generatePDF(orders: Order[], metrics: any, dateRange: any, restau
         <p style="margin: 0; color: #6B7280;">Chiffre d'affaires</p>
         <p style="margin: 0; font-size: 24px; color: #10B981;">${metrics.totalRevenue.toFixed(2)} €</p>
       </div>
-      <div style="display: inline-block;">
-        <p style="margin: 0; color: #6B7280;">TVA collectée</p>
-        <p style="margin: 0; font-size: 24px; color: #10B981;">${metrics.totalTax.toFixed(2)} €</p>
-      </div>
     </div>
 
     <table style="width: 100%; border-collapse: collapse;">
@@ -201,7 +199,6 @@ async function generatePDF(orders: Order[], metrics: any, dateRange: any, restau
           <th style="text-align: left; padding: 8px;">Date</th>
           <th style="text-align: left; padding: 8px;">N° Commande</th>
           <th style="text-align: right; padding: 8px;">Montant</th>
-          <th style="text-align: right; padding: 8px;">TVA</th>
           <th style="text-align: left; padding: 8px;">Paiement</th>
         </tr>
       </thead>
@@ -211,7 +208,6 @@ async function generatePDF(orders: Order[], metrics: any, dateRange: any, restau
             <td style="padding: 8px;">${new Date(order.createdAt).toLocaleDateString()}</td>
             <td style="padding: 8px;">${order.orderNumber}</td>
             <td style="padding: 8px; text-align: right;">${order.total.toFixed(2)} €</td>
-            <td style="padding: 8px; text-align: right;">${order.tax.toFixed(2)} €</td>
             <td style="padding: 8px;">${order.paymentMethod === 'card' ? 'CB' :
       order.paymentMethod === 'cash' ? 'ESP' : 'AP'
     }</td>

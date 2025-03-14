@@ -158,6 +158,7 @@ export async function createOrder(restaurantId: string, orderData: {
       restaurantInfo,
       items: cleanedItems,
       type: orderType.type,
+      table: orderType.table,
       status: 'pending',
       paymentStatus: 'pending', // Always mark as paid in register mode
       paymentMethod: orderData.paymentMethod,

@@ -65,7 +65,7 @@ export default function Accounting() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [metrics, setMetrics] = useState({
     totalRevenue: 0 as number,
-    totalTax: 0 as number,
+    totalComptoir: 0 as number,
     totalDeliveryFees: 0 as number,
     paymentMethodBreakdown: {} as Record<string, number>,
     orderCount: 0 as number,
@@ -318,8 +318,8 @@ export default function Accounting() {
                     <CreditCard className="h-6 w-6 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">TVA collectée</p>
-                    <p className="text-2xl font-bold">{metrics.totalTax.toFixed(2)} €</p>
+                    <p className="text-sm text-gray-500">Carte comptoire</p>
+                    <p className="text-2xl font-bold">{metrics.totalComptoir.toFixed(2)} €</p>
                   </div>
                 </div>
               </div>
