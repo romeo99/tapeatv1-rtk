@@ -19,7 +19,7 @@ const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxV
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, applicationFee, serviceFees, subtotal, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId } = useCart();
+  const { items, applicationFee, serviceFees, subtotal, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId, setScheduledTime } = useCart();
   //const { user } = useAuth();
   const { themeColor } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
@@ -28,6 +28,7 @@ export default function Checkout() {
 
   const [selectedMethod, setSelectedMethod] = useState<string>('card');
   const [showUpsell, setShowUpsell] = useState(true);
+  const [isScheduled, setIsScheduled] = useState(false);
   const [searchParams] = useSearchParams();
   const restaurantId = searchParams.get('restaurantId');
   const isRegisterMode = searchParams.get('mode') === 'register';
@@ -283,6 +284,49 @@ export default function Checkout() {
       <div className="max-w-lg mx-auto px-4 pt-20 flex-1 flex flex-col">
         {error && <div className="mb-6 p-4 bg-red-50 text-red-500 rounded-lg">{error}</div>}
 
+        {!isRegisterMode && <div className="grid grid-cols-2 gap-3 mb-4">
+          <button
+            onClick={() => setIsScheduled(false)}
+            className={`p-3 sm:p-4 rounded-xl flex flex-col items-center gap-1 sm:gap-2 border-2 transition-colors bg-opacity-10
+              bg-white border-gray-200 hover:border-2`}
+            style={!isScheduled ? {
+              backgroundColor: `${themeColor}20`,
+              borderColor: themeColor
+            } : undefined}
+          >Maintenant
+          </button>
+          <button
+            onClick={() => setIsScheduled(true)}
+            className={`p-3 sm:p-4 rounded-xl flex flex-col items-center gap-1 sm:gap-2 border-2 transition-colors bg-opacity-10
+              bg-white border-gray-200 hover:border-2`}
+            style={isScheduled ? {
+              backgroundColor: `${themeColor}20`,
+              borderColor: themeColor
+            } : undefined}
+          >Plus tard
+          </button>
+        </div>}
+
+        {isScheduled && !isRegisterMode && (
+          <div className="mb-4">
+            <label htmlFor="scheduledTime" className="block text-sm font-medium text-gray-700 mb-2">
+              Choisissez la date voulue:
+            </label>
+            <input
+              type="datetime-local"
+              name="scheduledTime"
+              id="scheduledTime"
+              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={`${scheduledTime?.date || ''}T${scheduledTime?.time || ''}`}
+              min={new Date().toISOString().slice(0, 16)}
+              onChange={(e) => {
+                const [date, time] = e.target.value.split('T');
+                setScheduledTime({ date, time });
+              }}
+            />
+          </div>
+        )}
+
         <div className="grid grid-cols-3 gap-3 mb-4">
           {Object.entries(availablePaymentMethods).map(([method, details]) => {
             const isAllowed = allowedMethods.includes(method) && ((method !== 'card' && method !== 'apple_pay') || restaurantData?.stripeAccountId);
@@ -333,42 +377,6 @@ export default function Checkout() {
             themeColor={themeColor}
           />
         </div>
-
-        {/* <div className="flex-1 overflow-auto">
-          {Object.entries(restaurantItems).map(([restaurantId, { items, amount }]) => (
-            <div key={restaurantId} className="bg-white rounded-lg shadow-sm mb-4 p-4">
-              <div className="font-medium mb-3">Restaurant name: {items[0].restaurantName}</div>
-              {items.map((item, index) => (
-                <div key={`${item.id}-${index}`} className="flex items-center gap-3 py-2 ">
-                  <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{item.name}</div>
-                    <div className="text-sm text-gray-500">Quantité: {item.quantity}</div>
-                  </div>
-                  <div className="font-medium flex-shrink-0">${(item.price * item.quantity).toFixed(2)}</div>
-                </div>
-              ))}
-              <div className="flex justify-between mt-3 pt-3 border-t">
-                <div className="font-medium">Sous-total</div>
-                <div className="font-medium">{amount.toFixed(2)}€</div>
-              </div>
-            </div>
-          ))}
-          <div className="mt-6 p-4 bg-white rounded-lg shadow">
-            <div className="flex justify-between">
-              <div className="font-medium">Sous-total total</div>
-              <div className="font-medium">{subtotal.toFixed(2)}€</div>
-            </div>
-            <div className="flex justify-between mt-2">
-              <div className="text-gray-600">Frais de service</div>
-              <div className="text-gray-600">{serviceFees.toFixed(2)}€</div>
-            </div>
-            <div className="flex justify-between mt-3 pt-3 border-t">
-              <div className="font-semibold text-lg">Total</div>
-              <div className="font-semibold text-lg">{totalPrice.toFixed(2)}€</div>
-            </div>
-          </div>
-        </div> */}
 
         <div className="sticky bottom-0 left-0 right-0 pb-safe bg-gray-50 pt-2">
           <button onClick={handlePayment} disabled={loading /* || !user */ || items.length === 0} className="w-full text-white py-2.5 sm:py-3 rounded-xl font-medium" style={{ backgroundColor: themeColor }}>

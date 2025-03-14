@@ -448,6 +448,38 @@ export default function LiveOrders() {
     }
   };
 
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const now = new Date();
+
+      // Filtrer les commandes planifiées dont la mise à jour est nécessaire
+      const ordersToUpdate = activeOrders.filter((order) => {
+        if (order.status !== 'scheduled' || !order.scheduledTime) return false;
+
+        const { date, time } = order.scheduledTime;
+        const scheduledDateTime = new Date(`${date}T${time}`);
+        const timeDifference = (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60); // Diff en minutes
+
+        return timeDifference <= 15 && timeDifference > 0; // Vérifie si dans la fenêtre de 15 min
+      });
+
+      if (ordersToUpdate.length > 0) {
+        try {
+          await Promise.all(
+            ordersToUpdate.map(async (order) => {
+              await updateOrderStatus(order.id, 'pending');
+              console.log(`Commande ${order.id} mise à jour en "pending".`);
+            })
+          );
+        } catch (err) {
+          console.error('Erreur lors de la mise à jour des commandes:', err);
+        }
+      }
+    }, 3000); // Exécuter toutes les minutes
+
+    return () => clearInterval(interval);
+  }, [activeOrders]);
+
   return (
     <AdminLayout>
       <div className="bg-white shadow">

@@ -158,8 +158,8 @@ export async function createOrder(restaurantId: string, orderData: {
       restaurantInfo,
       items: cleanedItems,
       type: orderType.type,
-      table: orderType.table,
-      status: 'pending',
+      ...(orderType.table && { table: orderType.table }),
+      status: orderData.scheduledTime ? 'scheduled' : 'pending',
       paymentStatus: 'pending', // Always mark as paid in register mode
       paymentMethod: orderData.paymentMethod,
       subtotal: Math.max(0, Number(orderData.subtotal) || 0),
