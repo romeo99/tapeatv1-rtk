@@ -10,7 +10,7 @@ import { updateRestaurant } from '../../../services/restaurantService';
 const PAYMENT_METHODS = [
   { id: 'card', name: 'Carte bancaire', icon: '💳' },
   { id: 'cash', name: 'Espèces', icon: '💵' },
-  { id: 'mobile', name: 'Paiement mobile', icon: '📱' }
+  { id: 'apple_pay', name: 'Paiement mobile', icon: '📱' }
 ];
 
 const SERVICE_OPTIONS = [
