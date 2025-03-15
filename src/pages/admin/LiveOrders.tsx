@@ -461,7 +461,7 @@ export default function LiveOrders() {
         const scheduledDateTime = new Date(`${date}T${time}:00`); // Forcer HH:MM:SS
         const timeDifference = (scheduledDateTime - now) / (1000 * 60); // Diff en minutes
 
-        return timeDifference <= (restaurant?.averagePreparationTime || 15) && timeDifference > 0;
+        return timeDifference <= (restaurant?.averagePreparationTime || 15) + 3 && timeDifference > 0;
       });
 
       if (ordersToUpdate.length > 0) {
@@ -476,7 +476,7 @@ export default function LiveOrders() {
           console.error('Erreur lors de la mise à jour des commandes:', err);
         }
       }
-    }, 60000); // Exécuter toutes les minutes
+    }, 15000); // Exécuter toutes les minutes
 
     return () => clearInterval(interval);
   }, [activeOrders]);

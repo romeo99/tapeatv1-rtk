@@ -21,7 +21,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { items, applicationFee, serviceFees, subtotal, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId, setScheduledTime } = useCart();
   //const { user } = useAuth();
-  const { themeColor } = useRestaurantContext();
+  const { themeColor, restaurant } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -230,6 +230,39 @@ export default function Checkout() {
   const handlePayment = async () => {
     setLoading(true);
 
+    //Controle pour verifier si la valeur de l'heure est bien renseignée et est au minimum 15 minutes après l'heure actuelle
+    if (isScheduled) {
+      const now = new Date();
+      const selectedDate = scheduledTime?.date;
+      const selectedTime = scheduledTime?.time;
+
+      if (!selectedTime) {
+        setError('Veuillez sélectionner une heure de livraison.');
+        setLoading(false);
+        return;
+      }
+
+      // Convertir la date et l'heure sélectionnées en un objet Date
+      const scheduledDateTime = new Date(`${selectedDate}T${selectedTime}`);
+
+      // Vérifier si la date est aujourd'hui
+      const today = now.toISOString().split('T')[0] === selectedDate;
+
+      // Si la date est aujourd'hui, vérifier que l'heure est au minimum l'heure actuelle + 15 minutes
+      if (today) {
+        const minAllowedTime = new Date(now.getTime() + 15 * 60 * 1000); // Ajoute 15 min à l'heure actuelle
+
+        if (scheduledDateTime < minAllowedTime) {
+          setError(`L\'heure sélectionnée doit être au moins ${restaurant?.averagePreparationTime || 15} minutes après l\'heure actuelle.`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Si tout est bon, effacer les erreurs
+      setError(null);
+    }
+
     try {
       const orderData = prepareOrderData(selectedMethod);
       let orderId: string | string[] | void = isFoodCourtOrder ? await createFoodCourtOrder(foodCourtId!, orderData) : await createOrder(restaurantData?.id!, orderData);
@@ -314,18 +347,42 @@ export default function Checkout() {
             <label htmlFor="scheduledTime" className="block text-sm font-medium text-gray-700 mb-2">
               Choisissez la date voulue:
             </label>
-            <input
-              type="datetime-local"
-              name="scheduledTime"
-              id="scheduledTime"
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={`${scheduledTime?.date || ''}T${scheduledTime?.time || ''}`}
-              min={new Date().toISOString().slice(0, 16)}
-              onChange={(e) => {
-                const [date, time] = e.target.value.split('T');
-                setScheduledTime({ date, time });
-              }}
-            />
+            <div className="flex space-x-4">
+              {/* Sélecteur de date */}
+              <input
+                type="date"
+                name="scheduledDate"
+                id="scheduledDate"
+                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                min={new Date().toISOString().split('T')[0]} // Empêche la sélection d'un jour antérieur
+                //value={scheduledTime?.date || ''}
+                onChange={(e) => setScheduledTime((prev) => ({ ...prev, date: e.target.value }))}
+              />
+
+              {/* Sélecteur d'heure */}
+              <input
+                type="time"
+                name="scheduledTime"
+                id="scheduledTime"
+                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                min={(() => {
+                  const now = new Date();
+                  now.setMinutes(now.getMinutes() + (restaurant?.averagePreparationTime || 15) + 1);
+
+                  const minHour = 8; // Heure minimale (ex: 08:00)
+                  const minDate = new Date();
+                  minDate.setHours(minHour, 0, 0, 0); // Fixe l'heure minimale
+
+                  // Si la date choisie est aujourd'hui, alors appliquer la restriction sur l'heure
+                  return scheduledTime?.date === new Date().toISOString().split('T')[0]
+                    ? now.toTimeString().slice(0, 5)
+                    : "00:00"; // Sinon, pas de restriction
+                })()}
+                value={scheduledTime?.time || ''}
+                onChange={(e) => setScheduledTime((prev) => ({ ...prev, time: e.target.value }))}
+              />
+            </div>
+
           </div>
         )}
 
