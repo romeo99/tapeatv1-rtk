@@ -453,15 +453,15 @@ export default function LiveOrders() {
     const interval = setInterval(async () => {
       const now = new Date();
 
-      // Filtrer les commandes planifiées dont la mise à jour est nécessaire
+      // Filtrer les commandes planifiées dans la fenêtre des 15 min
       const ordersToUpdate = activeOrders.filter((order) => {
         if (order.status !== 'scheduled' || !order.scheduledTime) return false;
 
         const { date, time } = order.scheduledTime;
-        const scheduledDateTime = new Date(`${date}T${time}`);
-        const timeDifference = (scheduledDateTime.getTime() - now.getTime()) / (1000 * 60); // Diff en minutes
+        const scheduledDateTime = new Date(`${date}T${time}:00`); // Forcer HH:MM:SS
+        const timeDifference = (scheduledDateTime - now) / (1000 * 60); // Diff en minutes
 
-        return timeDifference <= 15 && timeDifference > 0; // Vérifie si dans la fenêtre de 15 min
+        return timeDifference <= (restaurant?.averagePreparationTime || 15) && timeDifference > 0;
       });
 
       if (ordersToUpdate.length > 0) {
@@ -571,7 +571,7 @@ export default function LiveOrders() {
                 <div className="flex flex-col items-end min-w-[120px] text-right">
                   <span className="text-lg font-semibold text-emerald-600 mb-1">{order.total.toFixed(2)} €</span>
                   <span className="text-sm text-gray-500">
-                    {order.status === 'scheduled' ? order.scheduledTime!.date + ' à ' + order.scheduledTime!.time :
+                    {order.status === 'scheduled' ? order.scheduledTime?.date.split('-').reverse().join('-') + ' à ' + order.scheduledTime!.time :
                       new Date(order.createdAt).toLocaleTimeString('fr-FR', {
                         hour: '2-digit',
                         minute: '2-digit'

@@ -319,12 +319,11 @@ export default function Checkout() {
               name="scheduledTime"
               id="scheduledTime"
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={`${scheduledTime?.date.split('-').reverse().join('-') || ''}T${scheduledTime?.time || ''}`}
+              value={`${scheduledTime?.date || ''}T${scheduledTime?.time || ''}`}
               min={new Date().toISOString().slice(0, 16)}
               onChange={(e) => {
                 const [date, time] = e.target.value.split('T');
-                const formattedDate = date.split('-').reverse().join('-');
-                setScheduledTime({ date: formattedDate, time });
+                setScheduledTime({ date, time });
               }}
             />
           </div>

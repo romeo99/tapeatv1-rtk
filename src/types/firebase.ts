@@ -113,6 +113,7 @@ export interface Restaurant {
   orderCount?: number;
   paymentMethods: string[];
   serviceOptions: string[];
+  averagePreparationTime: number;
   openingHours: {
     [key: string]: {
       closed: boolean;
