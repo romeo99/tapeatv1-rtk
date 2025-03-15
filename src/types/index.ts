@@ -38,6 +38,7 @@ export interface CartItem {
   isCombo?: boolean | null;
   remarks?: string | null;
   promotionLabel?: string | null;
+  promotionType?: string | null;
   sections?: Array<{
     name: string;
     choice: string;

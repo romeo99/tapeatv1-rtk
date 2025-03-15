@@ -108,6 +108,7 @@ export default function OrderSummary({ restaurants, items, serviceFees, subtotal
                         </p>
                       )}
                       <p className="text-sm text-gray-500">Quantité : {item.quantity}</p>
+                      <p className="text-sm text-emerald-500">{item.promotionLabel}</p>
                       {item.excludedIngredients && item.excludedIngredients.length > 0 && (
                         <p className="text-sm text-red-500">
                           Sans : {item.excludedIngredients.join(', ')}
@@ -127,7 +128,33 @@ export default function OrderSummary({ restaurants, items, serviceFees, subtotal
                         </div>
                       )}
                     </div>
-                    <span>{(item.price * item.quantity).toFixed(2)} €</span>
+                    {item.promotionType ? <div className="column flex-column" style={{ gap: "4px", alignItems: "flex-start" }}>
+                      <span style={{ textDecoration: "line-through", color: "#d32f2f", fontSize: "12px" }}>
+                        {((item.originalPrice || item.price) * item.quantity).toFixed(2)} €
+                      </span>
+                      <span style={{ fontWeight: "bold", fontSize: "14px" }}>
+                        {(() => {
+                          const promo = item.promotionType;
+
+                          if (promo === 'double') {
+                            return (item.price * (item.quantity / 2)).toFixed(2);
+                          } else if (promo === 'free') {
+                            return '0';
+                          } else if (promo === 'discount') {
+                            return (item.quantity * item.price).toFixed(2);
+                          } else {
+                            const pairs = Math.floor(item.quantity / 2);
+                            const remainingItems = item.quantity % 2;
+                            const regularPrice = item.originalPrice || item.price;
+                            const discountedPrice = item.price;
+
+                            return (pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice).toFixed(2);
+                          }
+                        })()} €
+                      </span>
+                    </div> : <span>
+                      {(item.price * item.quantity).toFixed(2)} €
+                    </span>}
                   </div>
                 </div>
               </div>
@@ -195,7 +222,33 @@ export default function OrderSummary({ restaurants, items, serviceFees, subtotal
                         </div>
                       )}
                     </div>
-                    <span>{(item.price * item.quantity).toFixed(2)} €</span>
+                    {item.promotionType ? <div className="column flex-column" style={{ gap: "4px", alignItems: "flex-start" }}>
+                      <span style={{ textDecoration: "line-through", color: "#d32f2f", fontSize: "11px" }}>
+                        {((item.originalPrice || item.price) * item.quantity).toFixed(2)} €
+                      </span>
+                      <span style={{ fontWeight: "bold", fontSize: "14px" }}>
+                        {(() => {
+                          const promo = item.promotionType;
+
+                          if (promo === 'double') {
+                            return (item.price * (item.quantity / 2)).toFixed(2);
+                          } else if (promo === 'free') {
+                            return '0';
+                          } else if (promo === 'discount') {
+                            return (item.quantity * item.price).toFixed(2);
+                          } else {
+                            const pairs = Math.floor(item.quantity / 2);
+                            const remainingItems = item.quantity % 2;
+                            const regularPrice = item.originalPrice || item.price;
+                            const discountedPrice = item.price;
+
+                            return (pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice).toFixed(2);
+                          }
+                        })()} €
+                      </span>
+                    </div> : <span>
+                      {(item.price * item.quantity).toFixed(2)} €
+                    </span>}
                   </div>
                 </div>
               </div>

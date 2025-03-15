@@ -176,14 +176,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
             if (existingItemIndex >= 0) {
               const updatedItems = [...currentItems];
               const currentQuantity = updatedItems[existingItemIndex].quantity;
+
+              // Toujours ajouter +2 (1 acheté = 1 offert)
               updatedItems[existingItemIndex] = {
                 ...updatedItems[existingItemIndex],
-                quantity: currentQuantity + 1,
-                promotionLabel: (currentQuantity + 1) % 2 === 0 ? '1 offert' : undefined,
+                quantity: currentQuantity + 2,
+                promotionLabel: `${(currentQuantity + 2) / 2} offerts`,
+                promotionType: `double`,
               };
+
               return updatedItems;
+            } else {
+              // Si l'article n'existe pas encore dans le panier, on ajoute 2 directement
+              return [
+                ...currentItems,
+                {
+                  ...itemToAdd,
+                  quantity: 2, // 1 payé + 1 offert
+                  promotionLabel: `1 offert`,
+                  promotionType: 'double',
+                },
+              ];
             }
-            break;
 
           case 'discount':
             itemToAdd = {
@@ -192,6 +206,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               quantity: initialQuantity,
               price: Number((newItem.price * (1 - (promotion.conditions.discountPercent || 0) / 100)).toFixed(2)),
               promotionLabel: `-${promotion.conditions.discountPercent}%`,
+              promotionType: `discount`,
             };
             break;
 
@@ -208,6 +223,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   quantity: initialQuantity,
                   price: 0,
                   promotionLabel: 'OFFERT',
+                  promotionType: 'free',
                 };
               }
             }
@@ -217,6 +233,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             // Trouver tous les articles identiques dans le panier
             const sameItems = currentItems.filter((item) => item.id === newItem.id);
             const totalQuantity = sameItems.reduce((sum, item) => sum + item.quantity, 0) + initialQuantity;
+            itemToAdd.promotionType = `second_item_discount`;
 
             // Appliquer la réduction sur les articles pairs
             if (totalQuantity >= 2) {
@@ -290,17 +307,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
 
       // Si la quantité est 0 ou moins, supprimer l'item
-      if (quantity <= 0) {
+      if (item.quantity + quantity <= 0) {
         return [...currentItems.slice(0, itemIndex), ...currentItems.slice(itemIndex + 1)];
       }
 
       // Mettre à jour la quantité avec gestion de la promotion
-      let updatedItem = { ...item, quantity };
+      let updatedItem = { ...item, quantity: item.quantity + quantity };
 
       if (promotion) {
         switch (promotion.type) {
           case 'double':
-            updatedItem.promotionLabel = quantity % 2 === 0 ? '1 offert' : undefined;
+            updatedItem.quantity = updatedItem.quantity + quantity
+            updatedItem.promotionLabel = updatedItem.quantity % 2 === 0 ? `${updatedItem.quantity / 2} offert${(updatedItem.quantity / 2) > 1 ? 's' : ''}` : undefined;
             break;
 
           case 'free':
@@ -345,11 +363,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const subtotal =
     items && Array.isArray(items)
       ? items.reduce((sum, item) => {
-        if (item.promotionLabel === '1 offert') {
+        if (item.promotionType === 'double') {
           // Pour chaque paire d'articles, ne facturer qu'un seul
           return sum + Math.ceil(item.quantity / 2) * item.price;
         }
-        if (item.promotionLabel?.includes('sur le 2ème')) {
+        if (item.promotionType === 'second_item_discount') {
           const pairs = Math.floor(item.quantity / 2);
           const remainingItems = item.quantity % 2;
           const regularPrice = item.originalPrice || item.price;

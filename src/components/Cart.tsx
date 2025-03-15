@@ -164,8 +164,37 @@ export default function Cart() {
                               <span className="font-medium">
                                 {item.quantity}x {item.name}
                               </span>
-                              <span>{(item.price * item.quantity).toFixed(2)} €</span>
+                              {item.promotionType ? <div className="column flex-column" style={{ gap: "4px", alignItems: "flex-start" }}>
+                                <span style={{ textDecoration: "line-through", color: "#d32f2f", fontSize: "11px" }}>
+                                  {((item.originalPrice || item.price) * item.quantity).toFixed(2)} €
+                                </span>
+                                <span style={{ fontWeight: "bold", fontSize: "14px" }}>
+                                  {(() => {
+                                    const promo = item.promotionType;
+
+                                    if (promo === 'double') {
+                                      return (item.price * (item.quantity / 2)).toFixed(2);
+                                    } else if (promo === 'free') {
+                                      return '0';
+                                    } else if (promo === 'discount') {
+                                      return (item.quantity * item.price).toFixed(2);
+                                    } else {
+                                      const pairs = Math.floor(item.quantity / 2);
+                                      const remainingItems = item.quantity % 2;
+                                      const regularPrice = item.originalPrice || item.price;
+                                      const discountedPrice = item.price;
+
+                                      return (pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice).toFixed(2);
+                                    }
+                                  })()} €
+                                </span>
+                              </div> : <span>
+                                {(item.price * item.quantity).toFixed(2)} €
+                              </span>}
                             </div>
+                            <span className='text-emerald-500'>
+                              {item.promotionLabel}
+                            </span>
                             {/* Affichage des sections de combo */}
                             {item.sections?.map((section, idx) => (
                               <div key={idx} className="text-sm text-gray-500 mt-1">
@@ -190,11 +219,11 @@ export default function Cart() {
                               </p>
                             )}
                             <div className="flex items-center gap-3 mt-2">
-                              <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 rounded-full" style={{ backgroundColor: themeColor, color: 'white' }}>
+                              <button onClick={() => updateQuantity(item.id, - 1)} className="p-1 rounded-full" style={{ backgroundColor: themeColor, color: 'white' }}>
                                 <Minus className="h-4 w-4" />
                               </button>
                               <span>{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 rounded-full" style={{ backgroundColor: themeColor, color: 'white' }}>
+                              <button onClick={() => updateQuantity(item.id, 1)} className="p-1 rounded-full" style={{ backgroundColor: themeColor, color: 'white' }}>
                                 <Plus className="h-4 w-4" />
                               </button>
                             </div>

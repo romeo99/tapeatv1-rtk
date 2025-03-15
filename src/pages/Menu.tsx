@@ -353,7 +353,7 @@ export default function Menu() {
         <div className="mb-16 md:mb-10" />
         <div className="grid grid-cols-2 gap-4">
           {filteredItems.map((item) => (
-            <div key={item.id} onClick={() => handleItemClick(item)} className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[140px] ${item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+            <div key={item.id} onClick={() => handleItemClick(item)} className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all relative h-[175px] ${item.status !== 'available' || !isOpen ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
               <div className="relative h-20">
                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 {(item.status !== 'available' || !isOpen) && (
@@ -376,7 +376,7 @@ export default function Menu() {
                     return (
                       <div key={promo.id} className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs">
                         <Tag className="h-3 w-3" />
-                        {promo.type === 'double' ? '1 acheté = 2 offerts' : promo.type === 'discount' ? `-${promo.conditions.discountPercent}%` : promo.type === 'free' ? `${promo.conditions.freeProductName} offert` : promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` : promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` : ''}
+                        {promo.type === 'double' ? '1 acheté = 1 offert' : promo.type === 'discount' ? `-${promo.conditions.discountPercent}%` : promo.type === 'free' ? `${promo.conditions.freeProductName} offert` : promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` : promo.type === 'second_item_discount' ? `-${promo.conditions.discountPercent}% sur le 2ème` : ''}
                       </div>
                     );
                   }
