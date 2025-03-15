@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { X, Loader2, MapPin } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
+import { Loader2, MapPin, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo";
+const GOOGLE_MAPS_API_KEY = "AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4";
 
 interface DeliveryFormProps {
   onSubmit: (data: {
@@ -53,7 +53,7 @@ export default function DeliveryForm({ onSubmit, onClose }: DeliveryFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.address.trim()) {
       setError('Veuillez entrer une adresse de livraison');
       return;

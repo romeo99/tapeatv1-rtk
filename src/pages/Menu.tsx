@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Info, Plus, Power, Tag } from 'lucide-react';
+import { ChevronLeft, Info, Plus, Power, Tag } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Cart from '../components/Cart';
@@ -300,7 +300,7 @@ export default function Menu() {
           </div>
         </div>
         <div className="px-2 py-1 border-b mt-10 md:mt-5">
-          <div className="flex gap-4 overflow-x-auto hide-scrollbar relative" ref={categoriesRef}>
+          <div className="flex gap-4 overflow-x-auto  relative" ref={categoriesRef}>
             {categories?.map((category) => (
               <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${activeCategory === category.id ? 'text-white' : 'bg-white text-gray-600'}`} style={activeCategory === category.id ? { backgroundColor: themeColor } : undefined}>
                 {category.image ? (
@@ -313,13 +313,13 @@ export default function Menu() {
                 <span className="text-[11px] whitespace-nowrap font-medium">{category.name}</span>
               </button>
             ))}
-            {showScrollButton && (
+            {/* {showScrollButton && (
               <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white to-transparent flex items-center justify-center">
                 <button onClick={handleScrollRight} className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors" style={{ backgroundColor: themeColor }}>
                   <ChevronRight className="h-4 w-4 text-white" />
                 </button>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

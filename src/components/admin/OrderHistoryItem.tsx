@@ -57,7 +57,7 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
               <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-white-800" onClick={() => {
                 printOrder(order)
               }}>
-                Voir le reçu
+                Imprimer le ticket
               </span>
             </div>
           </div>

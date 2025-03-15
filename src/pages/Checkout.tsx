@@ -33,6 +33,7 @@ export default function Checkout() {
   const restaurantId = searchParams.get('restaurantId');
   const isRegisterMode = searchParams.get('mode') === 'register';
   const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   // Redirect if no restaurant ID
   useEffect(() => {
@@ -174,6 +175,7 @@ export default function Checkout() {
         total: parseFloat(total.toFixed(2)),
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
+        message: message,
         scheduledTime,
         ...(deliveryInfo && { delivery: deliveryInfo })
       };
@@ -317,11 +319,12 @@ export default function Checkout() {
               name="scheduledTime"
               id="scheduledTime"
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={`${scheduledTime?.date || ''}T${scheduledTime?.time || ''}`}
+              value={`${scheduledTime?.date.split('-').reverse().join('-') || ''}T${scheduledTime?.time || ''}`}
               min={new Date().toISOString().slice(0, 16)}
               onChange={(e) => {
                 const [date, time] = e.target.value.split('T');
-                setScheduledTime({ date, time });
+                const formattedDate = date.split('-').reverse().join('-');
+                setScheduledTime({ date: formattedDate, time });
               }}
             />
           </div>
@@ -375,6 +378,7 @@ export default function Checkout() {
             subtotal={subtotal}
             total={total}
             themeColor={themeColor}
+            setMessage={!isFoodCourtOrder && !isRegisterMode ? setMessage : undefined}
           />
         </div>
 

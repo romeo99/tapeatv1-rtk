@@ -571,10 +571,11 @@ export default function LiveOrders() {
                 <div className="flex flex-col items-end min-w-[120px] text-right">
                   <span className="text-lg font-semibold text-emerald-600 mb-1">{order.total.toFixed(2)} €</span>
                   <span className="text-sm text-gray-500">
-                    {new Date(order.createdAt).toLocaleTimeString('fr-FR', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {order.status === 'scheduled' ? order.scheduledTime!.date + ' à ' + order.scheduledTime!.time :
+                      new Date(order.createdAt).toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                   </span>
                   <div className="flex items-center justify-end gap-2 mt-1">
                     {order.paymentMethod === 'cash' && order.paymentStatus === 'pending' && order.status === 'pending' && (
@@ -586,7 +587,7 @@ export default function LiveOrders() {
                   <div className="flex items-center justify-end gap-2 mt-1" onClick={() => { printOrder(order) }
                   }>
                     <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-white-800">
-                      Voir le reçu
+                      Imprimer le ticket
                     </span>
                   </div>
                 </div>

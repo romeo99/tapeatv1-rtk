@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Loader2, MapPin } from 'lucide-react';
-import { registerRestaurant } from '../../services/authService';
 import { useLoadScript } from '@react-google-maps/api';
+import { ChevronLeft, Loader2, MapPin } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { registerRestaurant } from '../../services/authService';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4';
 
 export default function RestaurantRegistration() {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export default function RestaurantRegistration() {
     } catch (err) {
       console.error('Error loading saved registration data:', err);
     }
-    
+
     return {
       name: '',
       address: '',

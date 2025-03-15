@@ -10,7 +10,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo',
+    googleMapsApiKey: 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4',
     libraries: ['places']
   });
   const [formData, setFormData] = useState({

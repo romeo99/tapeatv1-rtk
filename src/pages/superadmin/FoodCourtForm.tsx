@@ -1,13 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Upload, Loader2, X, MapPin, Plus, Trash2 } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { createFoodCourt, updateFoodCourt, getFoodCourt } from '../../services/foodCourtService';
-import SuperAdminLayout from '../../components/superadmin/SuperAdminLayout';
+import { ChevronLeft, Loader2, MapPin, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import type { FoodCourt } from '../../types/foodCourt';
+import SuperAdminLayout from '../../components/superadmin/SuperAdminLayout';
+import { createFoodCourt, getFoodCourt, updateFoodCourt } from '../../services/foodCourtService';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4';
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const PAYMENT_METHODS = [
   { id: 'card', name: 'Carte bancaire', icon: '💳' },
@@ -345,8 +344,8 @@ export default function FoodCourtForm() {
                   max="100"
                   step="0.1"
                   value={formData.serviceFee}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
                     serviceFee: parseFloat(e.target.value) || 0
                   }))}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -369,7 +368,7 @@ export default function FoodCourtForm() {
                       {day.charAt(0).toUpperCase() + day.slice(1)}
                     </span>
                   </div>
-                  
+
                   <label className="flex items-center">
                     <input
                       type="checkbox"
@@ -439,11 +438,10 @@ export default function FoodCourtForm() {
               {PAYMENT_METHODS.map((method) => (
                 <label
                   key={method.id}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl cursor-pointer transition-all ${
-                    formData.paymentMethods.includes(method.id)
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl cursor-pointer transition-all ${formData.paymentMethods.includes(method.id)
                       ? 'bg-emerald-50 border-2 border-emerald-500'
                       : 'bg-white border-2 border-gray-200 hover:border-emerald-500'
-                  }`}
+                    }`}
                 >
                   <input
                     type="checkbox"

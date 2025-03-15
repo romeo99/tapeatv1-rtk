@@ -13,7 +13,7 @@ import type { Location } from '../../services/locationService';
 import { getCurrentLocation } from '../../services/locationService';
 import { getNearbyRestaurants } from '../../services/restaurantService';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4';
 
 const SECTIONS = [
   { id: 'recommended', title: 'Recommandé pour vous' },

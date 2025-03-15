@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, ChevronDown, Search, X } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
-import { getAddressFromCoords, getCoordsFromAddress } from '../../services/restaurantService';
+import { ChevronDown, MapPin, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAddressFromCoords } from '../../services/restaurantService';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4';
 
 interface LocationSelectorProps {
   currentLocation: string;
@@ -75,7 +75,7 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchValue(value);
-    
+
     if (!value.trim()) {
       setPredictions([]);
       return;
@@ -101,7 +101,7 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
       setError(null);
       const geocoder = new google.maps.Geocoder();
       const result = await geocoder.geocode({ placeId: prediction.place_id });
-      
+
       if (result.results[0]?.geometry?.location) {
         const location = result.results[0].geometry.location;
         onLocationChange({
@@ -121,12 +121,12 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
 
   const handleManualSearch = async () => {
     if (!searchValue.trim()) return;
-    
+
     try {
       setError(null);
       const geocoder = new google.maps.Geocoder();
       const result = await geocoder.geocode({ address: searchValue });
-      
+
       if (result.results[0]?.geometry?.location) {
         const location = result.results[0].geometry.location;
         onLocationChange({
@@ -148,8 +148,8 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
 
   return (
     <div className="relative">
-      <button 
-        onClick={() => setIsOpen(!isOpen)} 
+      <button
+        onClick={() => setIsOpen(!isOpen)}
         className="flex flex-col items-start py-1"
       >
         <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
@@ -213,15 +213,15 @@ export default function LocationSelector({ currentLocation, onLocationChange }: 
               Rechercher cette adresse
             </button>
           )}
-          
+
           <div className="border-t pt-6">
-          <button
-            onClick={getCurrentPosition}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            <MapPin className="h-5 w-5 text-emerald-500" />
-            <span className="font-medium">Utiliser ma position actuelle</span>
-          </button>
+            <button
+              onClick={getCurrentPosition}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              <MapPin className="h-5 w-5 text-emerald-500" />
+              <span className="font-medium">Utiliser ma position actuelle</span>
+            </button>
           </div>
         </div>
       )}

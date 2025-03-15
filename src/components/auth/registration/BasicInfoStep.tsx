@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { MapPin, Phone, Mail, Building2, FileText } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
+import { Building2, FileText, Mail, MapPin, Phone } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface BasicInfoStepProps {
   data: {
@@ -18,7 +18,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepP
   const [errors, setErrors] = useState<Partial<Record<keyof BasicInfoStepProps['data'], string>>>({});
   const addressInputRef = useRef<HTMLInputElement>(null);
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo',
+    googleMapsApiKey: 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4',
     libraries: ['places']
   });
 
@@ -78,9 +78,8 @@ export default function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepP
             type="text"
             value={data.name}
             onChange={(e) => onUpdate({ name: e.target.value })}
-            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-300'
+              }`}
           />
           <Building2 className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>
@@ -99,9 +98,8 @@ export default function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepP
             type="text"
             value={data.address}
             onChange={(e) => onUpdate({ address: e.target.value })}
-            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
-              errors.address ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${errors.address ? 'border-red-500' : 'border-gray-300'
+              }`}
             placeholder="Entrez l'adresse du restaurant"
           />
           <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
@@ -120,9 +118,8 @@ export default function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepP
             type="tel"
             value={data.phone}
             onChange={(e) => onUpdate({ phone: e.target.value })}
-            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
-              errors.phone ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-gray-300'
+              }`}
           />
           <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>
@@ -140,9 +137,8 @@ export default function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepP
             type="email"
             value={data.email}
             onChange={(e) => onUpdate({ email: e.target.value })}
-            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full pl-10 pr-4 py-2 border rounded-lg ${errors.email ? 'border-red-500' : 'border-gray-300'
+              }`}
           />
           <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>

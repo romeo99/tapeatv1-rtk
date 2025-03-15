@@ -81,7 +81,7 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(({ order }, ref) => (
 
         <hr style={{ borderStyle: "dashed", margin: "5px 0" }} />
 
-        <div style={{ margin: "10px 0" }}>
+        {order.message && <div style={{ margin: "10px 0" }}>
             <div style={{ fontWeight: "bold", marginBottom: "3px", fontSize: "12px" }}>Remarques du client :</div>
             <div style={{
                 border: "1px solid #ccc",
@@ -89,9 +89,9 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(({ order }, ref) => (
                 fontSize: "10px",
                 wordWrap: "break-word"
             }}>
-                {order.restaurantId}
+                {order.message}
             </div>
-        </div>
+        </div>}
 
         <hr style={{ borderStyle: "dashed", margin: "5px 0" }} />
 

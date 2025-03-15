@@ -10,9 +10,10 @@ interface OrderSummaryProps extends React.HTMLAttributes<HTMLDivElement> {
   subtotal: number;
   total: number;
   themeColor?: string;
+  setMessage?: (message: string) => void;
 }
 
-export default function OrderSummary({ restaurants, items, serviceFees, subtotal, total, themeColor, ...props }: OrderSummaryProps) {
+export default function OrderSummary({ restaurants, items, serviceFees, subtotal, total, themeColor, setMessage, ...props }: OrderSummaryProps) {
   const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -63,6 +64,16 @@ export default function OrderSummary({ restaurants, items, serviceFees, subtotal
       <div className="p-4 border-b">
         <h3 className="font-medium">Détails de la commande</h3>
       </div>
+      {setMessage && <div className="p-4 border-b">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Remarque pour le restaurant
+        </label>
+        <textarea
+          onChange={(e) => setMessage(e.target.value)}
+          rows={3}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+        />
+      </div>}
       <div className="divide-y">
         {restaurants ? Object.entries(restaurants).map(([restaurantId, { items, amount }]) => (
           <div key={restaurantId} className="bg-white rounded-lg shadow-sm mb-4 p-4">

@@ -1,8 +1,8 @@
+import { AlertCircle, CheckCircle, ChevronLeft, MapPin, Navigation, Phone } from 'lucide-react';
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Navigation, MapPin, Phone, CheckCircle, AlertCircle } from 'lucide-react';
-import { useOrderContext } from '../../context/OrderContext';
+import { useNavigate, useParams } from 'react-router-dom';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useOrderContext } from '../../context/OrderContext';
 
 export default function DriverDelivery() {
   const { orderId } = useParams();
@@ -63,7 +63,7 @@ export default function DriverDelivery() {
         {/* Carte statique de l'adresse */}
         <div className="mb-6 rounded-lg overflow-hidden">
           <img
-            src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(order.deliveryAddress)}&zoom=15&size=600x300&key=AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo&markers=${encodeURIComponent(order.deliveryAddress)}`}
+            src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(order.deliveryAddress)}&zoom=15&size=600x300&key=AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4&markers=${encodeURIComponent(order.deliveryAddress)}`}
             alt="Carte de livraison"
             className="w-full h-[300px] object-cover"
           />
@@ -86,7 +86,7 @@ export default function DriverDelivery() {
             {order.deliveryInfo?.phone && (
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-gray-400" />
-                <a 
+                <a
                   href={`tel:${order.deliveryInfo.phone}`}
                   className="text-emerald-500"
                 >

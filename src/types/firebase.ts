@@ -17,6 +17,7 @@ export interface Order {
     phone?: string;
     name?: string;
   };
+  message?: string;
   createdAt: Date;
   updatedAt: Date;
   paymentStatus: string;

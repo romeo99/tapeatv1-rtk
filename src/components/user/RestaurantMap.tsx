@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatLogoUrlForMarker } from '../../utils/formatters';
 import LoadingSpinner from '../LoadingSpinner';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyAy9dDDxaapyTE-puU1pJUORVY1Xft62Fo';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBi3DoK4uEJmMfyjnSCLoQ_hxIv-h-Cbf4';
 
 interface Restaurant {
   id: string;

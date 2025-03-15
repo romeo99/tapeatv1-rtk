@@ -65,6 +65,7 @@ export async function createOrder(restaurantId: string, orderData: {
   subtotal: number;
   total: number;
   paymentMethod: string;
+  message?: string;
   scheduledTime?: { date: string; time: string } | null;
   delivery?: {
     name: string;
@@ -176,6 +177,7 @@ export async function createOrder(restaurantId: string, orderData: {
           phone: String(orderData.delivery.phone).trim()
         }
       }),
+      message: orderData.message,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
