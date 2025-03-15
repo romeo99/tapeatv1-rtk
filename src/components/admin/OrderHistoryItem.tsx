@@ -1,6 +1,8 @@
+import { Bike, ChevronDown, ShoppingBag, UtensilsCrossed } from 'lucide-react';
 import { useState } from 'react';
-import { ChevronDown, UtensilsCrossed, ShoppingBag, Bike } from 'lucide-react';
+import useOrderNotification from '../../hooks/useOrderNotification';
 import type { Order } from '../../types/firebase';
+import Receipt from '../Receipt';
 
 const STATUS_COLORS = {
   completed: 'bg-green-100 text-green-800',
@@ -13,10 +15,19 @@ interface OrderHistoryItemProps {
 
 export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { contentRef, orderToPrint, setOrderToPrint, handlePrint } = useOrderNotification();
+
+  const printOrder = (order: Order) => {
+    setOrderToPrint(order);
+    setTimeout(() => {
+      handlePrint(); // Lancer l'impression
+      setOrderToPrint(null);
+    }, 2000);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div 
+      <div
         className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -31,12 +42,11 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
                 {order.type === 'delivery' && <Bike className="h-4 w-4 text-gray-600" />}
                 <span className="text-xs text-gray-600">
                   {order.type === 'dine_in' ? 'Sur place' :
-                   order.type === 'takeaway' ? 'À emporter' : 'Livraison'}
+                    order.type === 'takeaway' ? 'À emporter' : 'Livraison'}
                 </span>
               </div>
-              <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full ${
-                STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]
-              }`}>
+              <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]
+                }`}>
                 {order.status === 'completed' ? 'Terminée' : 'Annulée'}
               </span>
               {order.paymentMethod === 'cash' && order.paymentStatus === 'pending' && (
@@ -44,6 +54,11 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
                   À encaisser
                 </span>
               )}
+              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-white-800" onClick={() => {
+                printOrder(order)
+              }}>
+                Voir le reçu
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -56,9 +71,8 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
                 minute: '2-digit'
               })}
             </span>
-            <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${
-              isExpanded ? 'transform rotate-180' : ''
-            }`} />
+            <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isExpanded ? 'transform rotate-180' : ''
+              }`} />
           </div>
         </div>
 
@@ -81,7 +95,7 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
                       </span>
                       <span>{(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)} €</span>
                     </div>
-                    
+
                     {/* Affichage des sections de combo */}
                     {item.sections?.map((section, idx) => (
                       <div key={idx} className="text-sm text-gray-500 mt-1">
@@ -132,6 +146,12 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
           </div>
         )}
       </div>
+      {orderToPrint && (
+        <Receipt
+          ref={contentRef}
+          order={orderToPrint}
+        />
+      )}
     </div>
   );
 }

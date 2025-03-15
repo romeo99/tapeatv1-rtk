@@ -37,11 +37,6 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(({ order }, ref) => (
 
         <div style={{ fontSize: "11px", marginBottom: "8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "sans-serif", }}>
             Commande passée le {new Date(order.createdAt).toLocaleDateString()} à {new Date(order.createdAt).toLocaleTimeString()}
-            {order.scheduledTime && (
-                <>
-                    <br /> À préparer pour {new Date(order.scheduledTime).toLocaleDateString()} à {new Date(order.scheduledTime).toLocaleTimeString()}
-                </>
-            )}
         </div>
 
         <hr style={{ margin: "5px 0" }} />

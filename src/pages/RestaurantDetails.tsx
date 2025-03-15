@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, Instagram, MapPin, Phone, ShoppingBag, Star, Truck, UtensilsCrossed } from 'lucide-react';
+import { Bike, ChevronLeft, Clock, Instagram, MapPin, Phone, ShoppingBag, Star, UtensilsCrossed } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRestaurantContext } from '../context/RestaurantContext';
@@ -146,7 +146,7 @@ export default function RestaurantDetails() {
                 className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-all text-center"
               >
                 <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-                  {service === 'dine_in' ? <UtensilsCrossed className="h-8 w-8 text-emerald-500" /> : service === 'takeaway' ? <ShoppingBag className="h-8 w-8 text-emerald-500" /> : <Truck className="h-8 w-8 text-emerald-500" />}
+                  {service === 'dine_in' ? <UtensilsCrossed className="h-8 w-8 text-emerald-500" /> : service === 'takeaway' ? <ShoppingBag className="h-8 w-8 text-emerald-500" /> : <Bike className="h-8 w-8 text-emerald-500" />}
 
                 </div>
                 <span className="font-medium">{service === 'dine_in' ? "Sur place" : service === 'takeaway' ? "À emporter" : "Livraison"}</span>

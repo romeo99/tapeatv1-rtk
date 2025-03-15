@@ -11,6 +11,7 @@ import { useRestaurantContext } from '../../context/RestaurantContext';
 import useOrderNotification from '../../hooks/useOrderNotification';
 import { deductInventoryFromOrder } from '../../services/inventoryService';
 import { getButtonPosition, saveButtonPosition } from '../../services/uiPreferencesService';
+import { Order } from '../../types/firebase';
 
 const TABS = [
   { id: 'scheduled', name: 'Programmées', icon: Calendar, color: 'bg-blue-100 text-blue-800' },
@@ -69,7 +70,7 @@ export default function LiveOrders() {
   const [newOrders, setNewOrders] = useState<string[]>([]);
   const previousOrdersRef = useRef<string[]>([]);
 
-  const { contentRef, orderToPrint } = useOrderNotification();
+  const { contentRef, orderToPrint, setOrderToPrint, handlePrint } = useOrderNotification();
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
@@ -475,10 +476,18 @@ export default function LiveOrders() {
           console.error('Erreur lors de la mise à jour des commandes:', err);
         }
       }
-    }, 3000); // Exécuter toutes les minutes
+    }, 60000); // Exécuter toutes les minutes
 
     return () => clearInterval(interval);
   }, [activeOrders]);
+
+  const printOrder = (order: Order) => {
+    setOrderToPrint(order);
+    setTimeout(() => {
+      handlePrint(); // Lancer l'impression
+      setOrderToPrint(null);
+    }, 2000);
+  }
 
   return (
     <AdminLayout>
@@ -573,6 +582,12 @@ export default function LiveOrders() {
                         À encaisser
                       </span>
                     )}
+                  </div>
+                  <div className="flex items-center justify-end gap-2 mt-1" onClick={() => { printOrder(order) }
+                  }>
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-white-800">
+                      Voir le reçu
+                    </span>
                   </div>
                 </div>
               </div>

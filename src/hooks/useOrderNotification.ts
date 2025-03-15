@@ -55,6 +55,7 @@ const useOrderNotification = () => {
                         setOrderToPrint(order);
                         setTimeout(() => {
                             handlePrint(); // Lancer l'impression
+                            setOrderToPrint(null)
                         }, 2000);
                     }
 
@@ -76,7 +77,7 @@ const useOrderNotification = () => {
         previousOrdersRef.current = currentOrderIds;
     }, [orders, playNotificationSound, play]);
 
-    return { contentRef, orderToPrint };
+    return { contentRef, orderToPrint, setOrderToPrint, handlePrint };
 };
 
 export default useOrderNotification;
