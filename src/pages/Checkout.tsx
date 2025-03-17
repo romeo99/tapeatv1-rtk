@@ -242,6 +242,12 @@ export default function Checkout() {
         return;
       }
 
+      if (!selectedDate) {
+        setError('Veuillez sélectionner le jour de livraison.');
+        setLoading(false);
+        return;
+      }
+
       // Convertir la date et l'heure sélectionnées en un objet Date
       const scheduledDateTime = new Date(`${selectedDate}T${selectedTime}`);
 
@@ -250,7 +256,7 @@ export default function Checkout() {
 
       // Si la date est aujourd'hui, vérifier que l'heure est au minimum l'heure actuelle + 15 minutes
       if (today) {
-        const minAllowedTime = new Date(now.getTime() + 15 * 60 * 1000); // Ajoute 15 min à l'heure actuelle
+        const minAllowedTime = new Date(now.getTime() + (restaurant?.averagePreparationTime || 15) * 60 * 1000); // Ajoute 15 min à l'heure actuelle
 
         if (scheduledDateTime < minAllowedTime) {
           setError(`L\'heure sélectionnée doit être au moins ${restaurant?.averagePreparationTime || 15} minutes après l\'heure actuelle.`);
