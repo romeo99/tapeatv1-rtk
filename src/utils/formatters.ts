@@ -10,5 +10,5 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatLogoUrlForMarker(restaurantId: string) {
-  return `https://${import.meta.env.VITE_AWS_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com/${restaurantId}-logo.png`;
+  return `https://tapeat-restaurants-logos-for-marker.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com/${restaurantId}-logo.png`;
 }
