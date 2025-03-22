@@ -9,3 +9,15 @@
   [headers.values]
     Content-Type = "application/json"
     Access-Control-Allow-Origin = "*"
+
+# Proxy pour Stripe
+[[redirects]]
+  from = "/api/stripe/*"
+  to = "https://api.stripe.com/v1/:splat"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/api/stripe/*"
+  [headers.values]
+    Authorization = "Bearer sk_test_51PH7PV1LCdahk0ySQgDEzbeJqA5thmu2GF9dR9rWvpud4kACR2OFIngPmAGPRWUcFtyckvc9n3u6pRJvcxjejRcE006NWFGTPA"
