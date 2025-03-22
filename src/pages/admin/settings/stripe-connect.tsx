@@ -43,8 +43,11 @@ export default function StripeConnect() {
 
   const getStripeDashboardUrl = async (accountId: string | undefined) => {
     try {
-      const response = await fetch(`/api/stripe/accounts/${accountId}/login_links`, {
+      const response = await fetch(`https://api.stripe.com/v1/accounts/${accountId}/login_links`, {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
+        },
       });
 
       const data = await response.json();
