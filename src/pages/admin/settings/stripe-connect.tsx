@@ -45,10 +45,6 @@ export default function StripeConnect() {
     try {
       const response = await fetch(`/api/stripe/accounts/${accountId}/login_links`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', // Indiquer que la requête est en JSON
-        },
-        body: JSON.stringify({})
       });
 
       const data = await response.json();
