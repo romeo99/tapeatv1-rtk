@@ -39,13 +39,6 @@ const settingsMenus = [
     path: '/admin/settings/stripe-connect'
   },
   {
-    id: 'banking',
-    name: 'Informations bancaires',
-    description: 'RIB et informations de versement',
-    icon: CreditCard,
-    path: '/admin/settings/banking'
-  },
-  {
     id: 'profile',
     name: 'Mon profil',
     description: 'Gérer votre compte et vos accès',

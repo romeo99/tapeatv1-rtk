@@ -144,9 +144,9 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
             <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-full">
               {(() => {
                 const TypeIcon = orderTypeIcons[order.type as keyof typeof orderTypeIcons]?.icon;
-                return TypeIcon && <TypeIcon className="h-4 w-4 text-gray-600" />;
+                return TypeIcon && <TypeIcon className="h-4 w-4 text-gray-600 flex-shrink-0" />;
               })()}
-              <span className="text-xs text-gray-600">
+              <span className="text-xs text-gray-600 whitespace-nowrap">
                 {orderTypeIcons[order.type as keyof typeof orderTypeIcons]?.label}
               </span>
             </div>
@@ -156,11 +156,17 @@ export default function OrderHistoryItem({ order, hasReviewed, handleReorder, sh
         {/* Order Number & Status */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-base font-medium">#{order.orderNumber}</span>
-          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${currentStatus === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+            currentStatus === 'completed' ? 'bg-emerald-100 text-emerald-700' :
               currentStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
-                'bg-gray-100 text-gray-700'
-            }`}>
-            {currentStatus === 'completed' ? 'Terminée' :
+              currentStatus === 'preparing' ? 'bg-orange-100 text-orange-700' :
+              currentStatus === 'ready' ? 'bg-green-100 text-green-700' :
+              currentStatus === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+              currentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-gray-100 text-gray-600'
+          }`}>
+            {currentStatus === 'scheduled' ? 'Programmée' :
+              currentStatus === 'completed' ? 'Terminée' :
               currentStatus === 'cancelled' ? 'Annulée' :
                 currentStatus === 'pending' ? 'En attente' :
                   currentStatus === 'preparing' ? 'En préparation' :

@@ -34,6 +34,7 @@ export default function Checkout() {
   const isRegisterMode = searchParams.get('mode') === 'register';
   const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const today = new Date().toISOString().split('T')[0];
 
   // Redirect if no restaurant ID
   useEffect(() => {
@@ -361,7 +362,7 @@ export default function Checkout() {
                 id="scheduledDate"
                 className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 min={new Date().toISOString().split('T')[0]} // Empêche la sélection d'un jour antérieur
-                //value={scheduledTime?.date || ''}
+                value={scheduledTime?.date || today}
                 onChange={(e) => setScheduledTime((prev) => ({ ...prev, date: e.target.value }))}
               />
 

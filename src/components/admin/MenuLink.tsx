@@ -17,20 +17,5 @@ export default function MenuLink() {
     }
   };
 
-  return (
-    <button
-      onClick={handleCopy}
-      className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors lg:hover:scale-105 lg:transform lg:transition-all"
-      title={copied ? 'Copié !' : 'Copier le lien du menu'}
-    >
-      <Link className="h-4 w-4" />
-      <span className="text-sm font-medium whitespace-nowrap">Menu client</span>
-      {copied && (
-        <span className="flex items-center gap-1 text-xs bg-emerald-100 px-2 py-0.5 rounded">
-          <Check className="h-3 w-3" />
-          Copié !
-        </span>
-      )}
-    </button>
-  );
+  return 
 }

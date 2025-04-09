@@ -29,18 +29,18 @@ export default function RestaurantCard({ restaurant, variant = 'default' }: Rest
       <div 
         onClick={() => isOpen && navigate(`/restaurant?restaurantId=${restaurant.id}`)}
         className={`bg-white rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 w-full ${
-          isOpen ? 'hover:shadow-[0_8px_16px_rgba(0,0,0,0.12)] cursor-pointer hover:scale-[1.01]' : 'opacity-75'
+          isOpen ? 'hover:shadow-[0_8px_16px_rgba(0,0,0,0.12)] cursor-pointer hover:scale-[1.01]' : ''
         }`}
       >
         <div className="flex">
-          <div className="w-32 h-32 flex-shrink-0">
+          <div className="w-32 h-32 flex-shrink-0 relative">
             <img
               src={restaurant.image}
               alt={restaurant.name}
-              className={`w-full h-full object-cover bg-gray-100 ${!isOpen && 'grayscale'}`}
+              className="w-full h-full object-cover bg-gray-100"
             />
             {!isOpen && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <span className="text-white font-medium text-sm">Fermé</span>
               </div>
             )}
@@ -52,17 +52,13 @@ export default function RestaurantCard({ restaurant, variant = 'default' }: Rest
                 <h3 className="text-[17px] font-bold">{restaurant.name}</h3>
                 <p className="text-xs text-gray-500">{restaurant.type}</p>
                 <div className="flex gap-4 mt-2">
-                  <div className="text-center">
-                    <div className="flex items-center gap-1">
-                      <User2 className="h-4 w-4 text-gray-400" />
-                      <span className="text-[15px] font-medium">{restaurant.duration}</span>
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <User2 className="h-4 w-4 text-gray-400" />
+                    <span className="text-[15px] font-medium whitespace-nowrap">{restaurant.duration}</span>
                   </div>
-                  <div className="text-center">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span className="text-[15px] font-medium">{restaurant.prepTime} min</span>
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span className="text-[15px] font-medium whitespace-nowrap">{restaurant.prepTime} min</span>
                   </div>
                 </div>
               </div>
@@ -97,17 +93,17 @@ export default function RestaurantCard({ restaurant, variant = 'default' }: Rest
     <div 
       onClick={() => isOpen && navigate(`/restaurant?restaurantId=${restaurant.id}`)}
       className={`bg-white rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 w-[260px] relative h-[200px] ${
-        isOpen ? 'hover:shadow-[0_8px_16px_rgba(0,0,0,0.12)] cursor-pointer hover:scale-[1.01]' : 'opacity-75'
+        isOpen ? 'hover:shadow-[0_8px_16px_rgba(0,0,0,0.12)] cursor-pointer hover:scale-[1.01]' : ''
       }`}
     >
-      <div className="relative h-28">
+      <div className="h-28 relative">
         <img
           src={restaurant.image}
           alt={restaurant.name}
-          className={`w-full h-full object-cover ${!isOpen ? 'grayscale brightness-75' : ''}`}
+          className="w-full h-full object-cover"
         />
         {!isOpen && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="bg-black/75 text-white font-medium text-sm px-3 py-1 rounded-full">Fermé</span>
           </div>
         )}
@@ -134,12 +130,12 @@ export default function RestaurantCard({ restaurant, variant = 'default' }: Rest
             <div className="flex items-center gap-3 text-[13px] text-gray-500 mt-2">
               <div className="flex items-center gap-1">
                 <User2 className="h-4 w-4 text-gray-400" />
-                <span>{restaurant.duration}</span>
+                <span className="whitespace-nowrap">{restaurant.duration}</span>
               </div>
               <span>•</span>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4 text-gray-400" />
-                <span>{restaurant.prepTime} min</span>
+                <span className="whitespace-nowrap">{restaurant.prepTime} min</span>
               </div>
             </div>
           </div>

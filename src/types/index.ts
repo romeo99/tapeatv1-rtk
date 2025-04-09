@@ -15,6 +15,7 @@ export interface Category {
   description?: string;
   image: string;
   icon: string;
+  hidden?: boolean;
   order: number;
 }
 export interface MenuOptions {

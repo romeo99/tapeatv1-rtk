@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../../components/layout/BottomNavigation';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useAuth } from '../../context/AuthContext';
+import { doc, getDoc, getDocs, query, collectionGroup, where } from 'firebase/firestore';
+import { db } from '../../config/firebase';
 import FoodCourtCard from '../../components/user/FoodCourtCard';
 import LocationSelector from '../../components/user/LocationSelector';
 import RestaurantCard from '../../components/user/RestaurantCard';
@@ -31,6 +34,7 @@ export default function DiscoverPage() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [currentAddress, setCurrentAddress] = useState('à moins de 2 km');
+  const { user } = useAuth();
   const [locationError, setLocationError] = useState<string | null>(null);
   const lastLocationRef = useRef<{ lat: number; lng: number } | null>(null);
   const watchIdRef = useRef<number | null>(null);
@@ -39,6 +43,36 @@ export default function DiscoverPage() {
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries
   });
+
+  useEffect(() => {
+    const checkRestaurantAccess = async () => {
+      if (!user?.uid) return;
+
+      try {
+        // Check if user is restaurant owner
+        const restaurantDoc = await getDoc(doc(db, 'restaurants', user.uid));
+        if (restaurantDoc.exists()) {
+          navigate('/admin/live-orders');
+          return;
+        }
+
+        // Check if user is staff
+        const staffQuery = query(
+          collectionGroup(db, 'staff'),
+          where('uid', '==', user.uid)
+        );
+        const staffDocs = await getDocs(staffQuery);
+        if (!staffDocs.empty) {
+          navigate('/admin/live-orders');
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking restaurant access:', err);
+      }
+    };
+
+    checkRestaurantAccess();
+  }, [user, navigate]);
 
   const handleLocationChange = async (location: { lat: number; lng: number; address: string }) => {
     setUserLocation({ lat: location.lat, lng: location.lng, address: location.address });

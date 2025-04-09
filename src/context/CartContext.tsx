@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getActivePromotions } from '../services/promotionService';
@@ -17,9 +15,9 @@ interface CartContextType {
   clearCart: () => void;
   isCartOpen: boolean;
   toggleCart: () => void;
-  applicationFee: number,
-  serviceFees: number,
-  subtotal: number,
+  applicationFee: number;
+  serviceFees: number;
+  subtotal: number;
   total: number;
   isFoodCourtOrder: boolean;
   foodCourtId?: string | null;
@@ -43,10 +41,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [scheduledTime, setScheduledTime] = useState<{ date: string; time: string } | null>(null);
   const location = useLocation();
   const [foodCourtId, setFoodCourtId] = useState<string | null>(null);
-
+  const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
   const [applicationFee, setApplicationFee] = useState<number>(0);
 
-  //Récupération des frais de l'application
+  const { restaurant } = useRestaurantContext();
+
+  // Load application fee
   useEffect(() => {
     let mounted = true;
     const fetchFee = async () => {
@@ -68,38 +68,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Cleanup function to remove food court data
-  const cleanupFoodCourtData = () => {
-    try {
-      localStorage.removeItem('foodCourtId');
-      setFoodCourtId(null);
-    } catch (error) {
-      console.error('Error cleaning up food court data:', error);
-    }
-  };
-
-  // Initialize foodCourtId from URL or localStorage
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(location.search);
-      const urlFoodCourtId = params.get('foodCourtId');
-
-      if (urlFoodCourtId) {
-        setFoodCourtId(urlFoodCourtId);
-        localStorage.setItem('foodCourtId', urlFoodCourtId);
-      } else {
-        // If no foodCourtId in URL, clean up any existing data
-        cleanupFoodCourtData();
-      }
-    } catch (error) {
-      console.error('Error initializing food court ID:', error);
-      cleanupFoodCourtData();
-    }
-  }, [location.search]);
-
-  const { restaurant } = useRestaurantContext();
-  const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
-
   // Load active promotions
   useEffect(() => {
     if (!restaurant?.id) return;
@@ -116,6 +84,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     loadPromotions();
   }, [restaurant?.id]);
+
+  // Initialize foodCourtId from URL or localStorage
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const urlFoodCourtId = params.get('foodCourtId');
+
+      if (urlFoodCourtId) {
+        setFoodCourtId(urlFoodCourtId);
+        localStorage.setItem('foodCourtId', urlFoodCourtId);
+      } else {
+        // If no foodCourtId in URL, clean up any existing data
+        localStorage.removeItem('foodCourtId');
+        setFoodCourtId(null);
+      }
+    } catch (error) {
+      console.error('Error initializing food court ID:', error);
+      localStorage.removeItem('foodCourtId');
+      setFoodCourtId(null);
+    }
+  }, [location.search]);
+
   // Check if this is a food court order
   const isFoodCourtOrder = useMemo(() => {
     try {
@@ -127,25 +117,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
   }, [items, foodCourtId]);
-
-  // Initialize cart items from localStorage
-  useEffect(() => {
-    try {
-      const savedItems = localStorage.getItem('cart');
-      if (savedItems) {
-        const parsedItems = JSON.parse(savedItems);
-        if (Array.isArray(parsedItems)) {
-          setItems(parsedItems);
-        } else {
-          console.error('Invalid cart data in localStorage');
-          setItems([]);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading cart from localStorage:', error);
-      setItems([]);
-    }
-  }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -165,7 +136,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const initialQuantity = newItem.quantity || 1;
       let itemToAdd = { ...newItem, quantity: initialQuantity };
 
-      // Chercher une promotion applicable
+      // Check for applicable promotion
       const promotion = activePromotions.find((p) => {
         return p.conditions.productId === newItem.id || p.conditions.freeProductId === newItem.id;
       });
@@ -177,7 +148,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               const updatedItems = [...currentItems];
               const currentQuantity = updatedItems[existingItemIndex].quantity;
 
-              // Toujours ajouter +2 (1 acheté = 1 offert)
+              // Add +2 (1 bought = 1 free)
               updatedItems[existingItemIndex] = {
                 ...updatedItems[existingItemIndex],
                 quantity: currentQuantity + 2,
@@ -187,12 +158,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
               return updatedItems;
             } else {
-              // Si l'article n'existe pas encore dans le panier, on ajoute 2 directement
+              // If item doesn't exist in cart yet, add 2 directly
               return [
                 ...currentItems,
                 {
                   ...itemToAdd,
-                  quantity: 2, // 1 payé + 1 offert
+                  quantity: 2, // 1 paid + 1 free
                   promotionLabel: `1 offert`,
                   promotionType: 'double',
                 },
@@ -211,9 +182,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             break;
 
           case 'free':
-            // Si c'est le produit offert
+            // If it's the free product
             if (newItem.id === promotion.conditions.freeProductId) {
-              // Vérifier si le produit principal est dans le panier
+              // Check if main product is in cart
               const mainProductInCart = currentItems.some((item) => item.id === promotion.conditions.productId);
 
               if (mainProductInCart) {
@@ -230,12 +201,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
             break;
 
           case 'second_item_discount': {
-            // Trouver tous les articles identiques dans le panier
+            // Find all identical items in cart
             const sameItems = currentItems.filter((item) => item.id === newItem.id);
             const totalQuantity = sameItems.reduce((sum, item) => sum + item.quantity, 0) + initialQuantity;
             itemToAdd.promotionType = `second_item_discount`;
 
-            // Appliquer la réduction sur les articles pairs
+            // Apply discount on even items
             if (totalQuantity >= 2) {
               const discountPercent = promotion.conditions.discountPercent || 0;
               itemToAdd.originalPrice = newItem.price;
@@ -274,7 +245,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeItem = (id: string, menuOptions?: MenuOptions) => {
     setItems((currentItems) => {
-      // Trouver l'index exact de l'item à supprimer
+      // Find exact index of item to remove
       const itemIndex = currentItems.findIndex((item) => {
         const sameId = item.id === id;
         const sameOptions = menuOptions ? JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) : true;
@@ -283,14 +254,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       if (itemIndex === -1) return currentItems;
 
-      // Créer une nouvelle copie du tableau sans l'item
+      // Create new array without the item
       return [...currentItems.slice(0, itemIndex), ...currentItems.slice(itemIndex + 1)];
     });
   };
 
   const updateQuantity = (id: string, quantity: number, menuOptions?: MenuOptions) => {
     setItems((currentItems) => {
-      // Trouver l'index de l'item à mettre à jour
+      // Find index of item to update
       const itemIndex = currentItems.findIndex((item) => {
         const sameId = item.id === id;
         const sameOptions = menuOptions ? JSON.stringify(item.menuOptions) === JSON.stringify(menuOptions) : true;
@@ -301,36 +272,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       const item = currentItems[itemIndex];
 
-      // Chercher une promotion applicable
+      // Check for applicable promotion
       const promotion = activePromotions.find((p) => {
         return p.conditions.productId === item.id || p.conditions.freeProductId === item.id;
       });
 
-      // Si la quantité est 0 ou moins, supprimer l'item
+      // If quantity is 0 or less, remove item
       if (item.quantity + quantity <= 0) {
         return [...currentItems.slice(0, itemIndex), ...currentItems.slice(itemIndex + 1)];
       }
 
-      // Mettre à jour la quantité avec gestion de la promotion
+      // Update quantity with promotion handling
       let updatedItem = { ...item, quantity: item.quantity + quantity };
 
       if (promotion) {
         switch (promotion.type) {
           case 'double':
-            updatedItem.quantity = updatedItem.quantity + quantity
+            updatedItem.quantity = updatedItem.quantity + quantity;
             updatedItem.promotionLabel = updatedItem.quantity % 2 === 0 ? `${updatedItem.quantity / 2} offert${(updatedItem.quantity / 2) > 1 ? 's' : ''}` : undefined;
             break;
 
           case 'free':
             if (item.id === promotion.conditions.freeProductId) {
-              // Trouver le produit principal dans le panier
+              // Find main product in cart
               const mainProduct = currentItems.find((cartItem) => cartItem.id === promotion.conditions.productId);
 
-              // Vérifier si le produit principal est dans le panier
+              // Check if main product is in cart
               const mainProductInCart = currentItems.some((cartItem) => cartItem.id === promotion.conditions.productId);
 
               if (mainProductInCart) {
-                // Un seul produit offert par produit principal
+                // Only one free product per main product
                 const freeQuantity = Math.min(1, mainProduct?.quantity ?? 0);
                 const paidQuantity = Math.max(0, quantity - freeQuantity);
 
@@ -338,7 +309,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   ...item,
                   quantity,
                   originalPrice: item.price,
-                  // Prix total = prix unitaire * quantité payante
+                  // Total price = unit price * paid quantity
                   price: paidQuantity === 0 ? 0 : item.originalPrice || item.price,
                   promotionLabel: freeQuantity > 0 ? `${freeQuantity} offert${freeQuantity > 1 ? 's' : ''}` : undefined,
                 };
@@ -355,7 +326,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = () => {
     setItems([]);
     setScheduledTime(null);
-    cleanupFoodCourtData();
+    localStorage.removeItem('foodCourtId');
   };
 
   const toggleCart = () => setIsCartOpen((prev) => !prev);
@@ -364,7 +335,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     items && Array.isArray(items)
       ? items.reduce((sum, item) => {
         if (item.promotionType === 'double') {
-          // Pour chaque paire d'articles, ne facturer qu'un seul
+          // For each pair of items, only charge one
           return sum + Math.ceil(item.quantity / 2) * item.price;
         }
         if (item.promotionType === 'second_item_discount') {
@@ -380,7 +351,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       : 0;
 
   const serviceFees = subtotal * applicationFee;
-  const total = subtotal + serviceFees
+  const total = subtotal + serviceFees;
 
   return (
     <CartContext.Provider
@@ -407,7 +378,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
@@ -415,28 +385,3 @@ export function useCart() {
   }
   return context;
 }
-
-/* const handleCheckout = () => {
-  const navigate = useNavigate();
-  toggleCart();
-  const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
-  const foodCourtId = localStorage.getItem('foodCourtId');
-
-  // Pour les commandes food court
-  if (foodCourtId) {
-    navigate(`/checkout?foodCourtId=${foodCourtId}`);
-    return;
-  }
-
-  // Pour les commandes normales
-  const restaurantId = items[0]?.restaurantId;
-  if (!restaurantId) {
-    console.error('Restaurant ID not found in cart items');
-    return;
-  }
-
-  navigate(isRegisterMode
-    ? `/checkout?mode=register${foodCourtId ? `&foodCourtId=${foodCourtId}` : ''}&restaurantId=${restaurantId}`
-    : `/checkout?restaurantId=${restaurantId}${foodCourtId ? `&foodCourtId=${foodCourtId}` : ''}`
-  );
-}; */

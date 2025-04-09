@@ -6,6 +6,7 @@ import { db } from '../../config/firebase';
 import BottomNavigation from '../../components/layout/BottomNavigation';
 import RestaurantCard from '../../components/user/RestaurantCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { isRestaurantOpen } from '../../utils/restaurantHours';
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function FavoritesPage() {
         const restaurantsData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
+          isOpen: doc.data().isOpen !== false && isRestaurantOpen(doc.data()),
           image: doc.data().coverImage || doc.data().logo || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&h=600',
           distance: 1000, // À remplacer par un calcul réel
           prepTime: '15-20'

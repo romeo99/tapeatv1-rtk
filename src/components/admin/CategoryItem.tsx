@@ -74,6 +74,11 @@ export default function CategoryItem({
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
+                {category.hidden && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                    Masquée
+                  </span>
+                )}
               </div>
             </div>
 

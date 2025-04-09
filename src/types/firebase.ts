@@ -52,19 +52,12 @@ export interface RestaurantTheme {
 
 export interface Promotion {
   id: string;
-  type: 'double' | 'discount' | 'free' | 'second_item_discount';
   name: string;
   description?: string;
-  status: 'active' | 'inactive';
-  conditions: {
-    productId: string;
-    productName: string;
-    discountPercent: number;
-    freeProductId?: string;
-    freeProductName?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
+  hidden?: boolean;
+  image?: string;
+  icon?: string;
+  order: number;
 }
 
 export interface MenuOptions {

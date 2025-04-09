@@ -21,7 +21,14 @@ export function isRestaurantOpen(restaurant: Restaurant): boolean {
   const openMinutes = convertTimeToMinutes(daySchedule.open);
   const closeMinutes = convertTimeToMinutes(daySchedule.close);
 
-  return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  // Gérer le cas où l'heure de fermeture est après minuit (le jour suivant)
+  if (closeMinutes < openMinutes) {
+    // Si l'heure actuelle est après l'heure d'ouverture OU avant l'heure de fermeture
+    return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+  } else {
+    // Cas normal: l'heure de fermeture est le même jour
+    return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  }
 }
 
 function convertTimeToMinutes(time: string): number {

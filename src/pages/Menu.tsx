@@ -212,9 +212,17 @@ export default function Menu() {
     return () => clearInterval(interval);
   }, [activePromotions.length]);
 
-  if (!activeCategory && categories?.length > 0) {
-    setActiveCategory(categories[0].id);
-  }
+  useEffect(() => {
+    if (!activeCategory && categories?.length > 0) {
+      // Find first visible category
+      const firstVisibleCategory = categories.find(cat => !cat.hidden);
+      if (firstVisibleCategory) {
+        setActiveCategory(firstVisibleCategory.id);
+      } else {
+        setActiveCategory(categories[0].id);
+      }
+    }
+  }, [activeCategory, categories]);
 
   const handleItemClick = (item: any) => {
     // Ne rien faire si le produit n'est pas disponible ou si le restaurant est fermé
@@ -301,7 +309,7 @@ export default function Menu() {
         </div>
         <div className="px-2 py-1 border-b mt-10 md:mt-5">
           <div className="flex gap-4 overflow-x-auto  relative" ref={categoriesRef}>
-            {categories?.map((category) => (
+            {categories?.filter(category => !category.hidden).map((category) => (
               <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`flex-shrink-0 flex flex-col items-center gap-2 px-3 py-2 rounded-xl transition-colors ${activeCategory === category.id ? 'text-white' : 'bg-white text-gray-600'}`} style={activeCategory === category.id ? { backgroundColor: themeColor } : undefined}>
                 {category.image ? (
                   <div className="w-7 h-7 rounded-full overflow-hidden">

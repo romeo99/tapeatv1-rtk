@@ -24,7 +24,8 @@ export default function CategoryForm() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    icon: ''
+    icon: '',
+    hidden: false
   });
 
   useEffect(() => {
@@ -42,7 +43,8 @@ export default function CategoryForm() {
           setFormData({
             name: category.name,
             description: category.description || '',
-            icon: category.icon || ''
+            icon: category.icon || '',
+            hidden: category.hidden || false
           });
           if (category.image) {
             setImagePreview(category.image);
@@ -133,6 +135,21 @@ export default function CategoryForm() {
             <h1 className="text-2xl font-bold text-gray-900">
               {id ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
             </h1>
+            
+            <div className="mt-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.hidden}
+                  onChange={(e) => setFormData(prev => ({ ...prev, hidden: e.target.checked }))}
+                  className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 mr-2"
+                />
+                <span className="text-sm font-medium text-gray-700">Masquer cette catégorie pour les clients</span>
+              </label>
+              <p className="mt-1 text-xs text-gray-500">
+                Utile pour les catégories contenant des produits destinés uniquement aux menus combo
+              </p>
+            </div>
           </div>
         </div>
       </div>

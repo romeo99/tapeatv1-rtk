@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search } from 'lucide-react';
+import { AlertCircle, ChevronLeft, Search } from 'lucide-react';
 import { useEffect } from 'react';
 import { getNearbyRestaurants } from '../../services/restaurantService';
 import RestaurantCard from '../../components/user/RestaurantCard';
@@ -14,25 +14,48 @@ export default function RestaurantListPage() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState({ lat: 48.8584, lng: 2.2945 });
+  const [userLocation, setUserLocation] = useState({ lat: 43.2965, lng: 5.3698 }); // Default to Marseille
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get user's location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ lat: latitude, lng: longitude });
-          loadRestaurants(latitude, longitude);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          loadRestaurants(userLocation.lat, userLocation.lng);
+    const initializeLocation = async () => {
+      try {
+        setLocationError(null);
+        setLoading(true);
+
+        // Start loading restaurants with default location immediately
+        await loadRestaurants(userLocation.lat, userLocation.lng);
+
+        // Only try geolocation if supported
+        if (navigator.geolocation) {
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 300000
+              });
+            });
+
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+            await loadRestaurants(latitude, longitude);
+          } catch (geoError) {
+            console.warn('Geolocation error:', geoError);
+            setLocationError('Affichage des restaurants à proximité de Marseille');
+          }
+        } else {
+          setLocationError('Affichage des restaurants à proximité de Marseille');
         }
-      );
-    } else {
-      loadRestaurants(userLocation.lat, userLocation.lng);
+      } catch (error) {
+        console.error('Location error:', error);
+        setError('Erreur lors du chargement des restaurants');
+      } finally {
+        setLoading(false);
+      }
     }
+
+    initializeLocation();
   }, []);
 
   const loadRestaurants = async (lat: number, lng: number) => {
@@ -55,7 +78,14 @@ export default function RestaurantListPage() {
   const filteredRestaurants = restaurants.filter(restaurant =>
     restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     restaurant.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ).sort((a, b) => {
+    // For "nearby" type, sort by distance
+    if (listType === 'nearby') {
+      return a.distance - b.distance;
+    }
+    // For recommended, keep original order
+    return 0;
+  });
 
   if (loading) {
     return (
@@ -68,31 +98,33 @@ export default function RestaurantListPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-white px-4 pt-12 pb-4 shadow-sm z-50 mb-4">
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <h1 className="text-xl font-bold">{getTitle()}</h1>
-        </div>
+      <div className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <h1 className="text-xl font-bold">{getTitle()}</h1>
+          </div>
 
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Rechercher un restaurant..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Rechercher un restaurant..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+          </div>
         </div>
       </div>
 
       {/* Liste des restaurants */}
-      <div className="px-4 pt-40 pb-4 space-y-4">
+      <div className="px-4 mt-[140px] pb-4 space-y-4">
         {error && (
           <div className="mb-4 p-4 bg-red-50 text-red-500 rounded-lg">
             {error}

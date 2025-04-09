@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { getRestaurant } from '../services/restaurantService';
 
-export default function Cart() {
+function Cart() {
   const cartRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { themeColor } = useRestaurantContext();
@@ -154,50 +154,55 @@ export default function Cart() {
                       <h3 className="font-medium text-lg">{name}</h3>
                       {isFoodCourtOrder && <span className="text-sm text-gray-500">Sous-total: {subtotal.toFixed(2)} €</span>}
                     </div>
-                    {/* Restaurant items */}
                     <div className="border-l-2 border-emerald-500 pl-4 space-y-4">
                       {restaurantItems.map((item, index) => (
                         <div key={`${item.id}-${index}-${JSON.stringify(item.menuOptions)}`} className="flex items-center gap-4 bg-white rounded-lg p-3 shadow-sm">
                           <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
                           <div className="flex-1">
-                            <div className="flex justify-between">
-                              <span className="font-medium">
-                                {item.quantity}x {item.name}
-                              </span>
-                              {item.promotionType ? <div className="column flex-column" style={{ gap: "4px", alignItems: "flex-start" }}>
-                                <span style={{ textDecoration: "line-through", color: "#d32f2f", fontSize: "11px" }}>
-                                  {((item.originalPrice || item.price) * item.quantity).toFixed(2)} €
-                                </span>
-                                <span style={{ fontWeight: "bold", fontSize: "14px" }}>
-                                  {(() => {
-                                    const promo = item.promotionType;
+                            <div className="flex items-start justify-between mb-1">
+                              <div className="flex-1">
+                                <span className="font-medium text-sm">{item.quantity}x {item.name}</span>
+                                {item.promotionLabel && (
+                                  <span className="block text-xs text-emerald-500">{item.promotionLabel}</span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                {item.promotionType ? (
+                                  <div className="flex flex-col items-end">
+                                    <span className="text-[10px] text-red-500 line-through">
+                                      {((item.originalPrice || item.price) * item.quantity).toFixed(2)} €
+                                    </span>
+                                    <span className="font-bold text-sm text-emerald-600">
+                                      {(() => {
+                                        const promo = item.promotionType;
 
-                                    if (promo === 'double') {
-                                      return (item.price * (item.quantity / 2)).toFixed(2);
-                                    } else if (promo === 'free') {
-                                      return '0';
-                                    } else if (promo === 'discount') {
-                                      return (item.quantity * item.price).toFixed(2);
-                                    } else {
-                                      const pairs = Math.floor(item.quantity / 2);
-                                      const remainingItems = item.quantity % 2;
-                                      const regularPrice = item.originalPrice || item.price;
-                                      const discountedPrice = item.price;
+                                        if (promo === 'double') {
+                                          return (item.price * (item.quantity / 2)).toFixed(2);
+                                        } else if (promo === 'free') {
+                                          return '0';
+                                        } else if (promo === 'discount') {
+                                          return (item.quantity * item.price).toFixed(2);
+                                        } else {
+                                          const pairs = Math.floor(item.quantity / 2);
+                                          const remainingItems = item.quantity % 2;
+                                          const regularPrice = item.originalPrice || item.price;
+                                          const discountedPrice = item.price;
 
-                                      return (pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice).toFixed(2);
-                                    }
-                                  })()} €
-                                </span>
-                              </div> : <span>
-                                {(item.price * item.quantity).toFixed(2)} €
-                              </span>}
+                                          return (pairs * (regularPrice + discountedPrice) + remainingItems * regularPrice).toFixed(2);
+                                        }
+                                      })()} €
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="font-medium text-sm">
+                                    {(item.price * item.quantity).toFixed(2)} €
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <span className='text-emerald-500'>
-                              {item.promotionLabel}
-                            </span>
                             {/* Affichage des sections de combo */}
                             {item.sections?.map((section, idx) => (
-                              <div key={idx} className="text-sm text-gray-500 mt-1">
+                              <div key={idx} className="text-xs text-gray-500">
                                 <p>
                                   <span className="font-medium">{section.name} : </span>
                                   {section.choice}
@@ -207,19 +212,19 @@ export default function Cart() {
                             ))}
                             {/* Affichage des options classiques */}
                             {item.menuOptions && !item.sections && (
-                              <div className="text-sm text-gray-500 mt-1">
+                              <div className="text-xs text-gray-500">
                                 {item.menuOptions.side && <p className="mt-0.5">Accompagnement : {item.menuOptions.side}</p>}
                                 {item.menuOptions.sauces!.length > 0 && <p className="mt-0.5">Sauces : {item.menuOptions.sauces?.join(', ')}</p>}
                               </div>
                             )}
-                            {item.excludedIngredients && item.excludedIngredients?.length > 0 && <p className="text-sm text-red-500 mt-1">Sans : {item.excludedIngredients?.join(', ')}</p>}
+                            {item.excludedIngredients && item.excludedIngredients?.length > 0 && <p className="text-xs text-red-500">Sans : {item.excludedIngredients?.join(', ')}</p>}
                             {item.remarks && (
-                              <p className="text-sm text-gray-600 italic mt-1 bg-gray-50 p-2 rounded-lg">
+                              <p className="text-xs text-gray-600 italic mt-1 bg-gray-50 p-1.5 rounded-lg">
                                 <span className="font-medium">Remarque client :</span> {item.remarks}
                               </p>
                             )}
-                            <div className="flex items-center gap-3 mt-2">
-                              <button onClick={() => updateQuantity(item.id, - 1)} className="p-1 rounded-full" style={{ backgroundColor: themeColor, color: 'white' }}>
+                            <div className="flex items-center gap-2 mt-2">
+                              <button onClick={() => updateQuantity(item.id, -1)} className="p-1 rounded-full" style={{ backgroundColor: themeColor, color: 'white' }}>
                                 <Minus className="h-4 w-4" />
                               </button>
                               <span>{item.quantity}</span>
@@ -228,7 +233,7 @@ export default function Cart() {
                               </button>
                             </div>
                           </div>
-                          <button onClick={() => removeItem(item.id)} className="p-2 hover:bg-gray-100 rounded-full">
+                          <button onClick={() => removeItem(item.id)} className="p-1.5 hover:bg-gray-100 rounded-full">
                             <Trash2 className="h-5 w-5 text-gray-400" />
                           </button>
                         </div>
@@ -296,3 +301,5 @@ export default function Cart() {
     </>
   );
 }
+
+export default Cart;

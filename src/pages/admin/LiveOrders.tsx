@@ -83,7 +83,7 @@ export default function LiveOrders() {
 
   // Check for new orders
   useEffect(() => {
-    const currentOrderIds = orders.filter(o => o.status === 'pending').map(o => o.id);
+    const currentOrderIds = orders.filter(o => o.status === 'pending').map(o => o?.id || '').filter(Boolean);
     const previousOrderIds = previousOrdersRef.current;
 
     // Find new orders that weren't in the previous list
@@ -492,11 +492,21 @@ export default function LiveOrders() {
   return (
     <AdminLayout>
       <div className="bg-white shadow">
-        <div className="px-4 py-4 border-b">
-          <h1 className="text-xl font-bold text-gray-900">Commandes en direct</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {activeOrders.length} commande{activeOrders.length > 1 ? 's' : ''} en cours
-          </p>
+        <div className="px-4 py-4 border-b flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Commandes en direct</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              {activeOrders.length} commande{activeOrders.length > 1 ? 's' : ''} en cours
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={() => setShowKeypad(true)}
+              className="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all"
+            >
+              <Calculator className="h-6 w-6 text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Grille de boutons pour les statuts */}
@@ -531,7 +541,12 @@ export default function LiveOrders() {
       </div>
 
       <div className="p-4 space-y-4 overflow-auto" style={{ height: 'calc(100vh - 200px)' }}>
-        {filteredOrders.map((order) => (
+        {filteredOrders.filter(order => {
+          if (activeTab === 'scheduled') {
+            return order.status === 'scheduled' && order.scheduledTime?.date && order.scheduledTime?.time;
+          }
+          return order.status === activeTab;
+        }).map((order) => (
           <div
             key={order.id}
             id={`order-${order.id}`}
@@ -571,7 +586,8 @@ export default function LiveOrders() {
                 <div className="flex flex-col items-end min-w-[120px] text-right">
                   <span className="text-lg font-semibold text-emerald-600 mb-1">{order.total.toFixed(2)} €</span>
                   <span className="text-sm text-gray-500">
-                    {order.status === 'scheduled' ? order.scheduledTime?.date.split('-').reverse().join('-') + ' à ' + order.scheduledTime!.time :
+                    {order.status === 'scheduled' && order.scheduledTime?.date && order.scheduledTime?.time ? 
+                      `${order.scheduledTime.date.split('-').reverse().join('-')} à ${order.scheduledTime.time}` :
                       new Date(order.createdAt).toLocaleTimeString('fr-FR', {
                         hour: '2-digit',
                         minute: '2-digit'
@@ -768,35 +784,6 @@ export default function LiveOrders() {
           onSearch={handleOrderSearch}
         />
       )}
-
-      {/* Floating Keypad Button */}
-      <button
-        ref={buttonRef}
-        className={`w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all fixed z-40 ${(isDragging || isLongPress) ? 'scale-110 cursor-move' : 'cursor-pointer'
-          }`}
-        onClick={() => !isDragging && setShowKeypad(true)}
-        draggable="true"
-        onDragEnd={handleDragEnd}
-        onDragStart={handleDragStart}
-        onDrag={handleDrag}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
-        style={{
-          left: `${buttonPosition.x}px`,
-          top: `${buttonPosition.y}px`,
-          transform: isMoving ? 'scale(1.1)' : 'none',
-          touchAction: 'none',
-          userSelect: 'none',
-          transition: isMoving ? 'none' : 'transform 0.2s ease-out',
-          right: isRegisterMode ? `calc(33.333333% + ${buttonPosition.x}px)` : `${buttonPosition.x}px`,
-          pointerEvents: 'auto',
-          willChange: 'transform'
-        }}
-      >
-        <Calculator className="h-6 w-6 text-white" />
-      </button>
 
       {/* Menu client en mode caisse */}
       {isRegisterMode && restaurant?.id && (

@@ -19,6 +19,7 @@ export interface QRCodeData {
   tableNumber?: string;
   url: string;
   qrCodeImage: string;
+  type?: 'restaurant' | 'foodCourt';
   createdAt: Date;
 }
 
@@ -33,9 +34,12 @@ export async function generateQRCode(
   try {
     // Generate the URL for the QR code
     const baseUrl = window.location.origin;
-    const url = data.type === 'restaurant' 
-      ? `${baseUrl}/restaurant?restaurantId=${entityId}${data.tableNumber?.trim() ? `&table=${data.tableNumber.trim()}` : ''}`
-      : `${baseUrl}/food-court?foodCourtId=${entityId}${data.tableNumber?.trim() ? `&table=${data.tableNumber.trim()}` : ''}`;
+    let url;
+    if (data.type === 'restaurant') {
+      url = `${baseUrl}/restaurant?restaurantId=${entityId}${data.tableNumber?.trim() ? `&table=${data.tableNumber.trim()}` : ''}`;
+    } else {
+      url = `${baseUrl}/food-court?foodCourtId=${entityId}${data.tableNumber?.trim() ? `&table=${data.tableNumber.trim()}` : ''}`;
+    }
 
     // Generate QR code image
     const qrCodeImage = await QRCode.toDataURL(url, {
@@ -52,15 +56,19 @@ export async function generateQRCode(
       ? `restaurants/${entityId}/qrCodes`
       : `foodCourts/${entityId}/qrCodes`;
 
-    const qrCodeRef = collection(db, collectionPath);
-    const docRef = await addDoc(qrCodeRef, {
+    // Prepare QR code data
+    const qrCodeData = {
       [data.type === 'restaurant' ? 'restaurantId' : 'foodCourtId']: entityId,
       label: data.label.trim(),
       tableNumber: data.tableNumber?.trim() || null,
       url,
       qrCodeImage,
+      type: data.type || 'restaurant', // Ensure type is never undefined
       createdAt: serverTimestamp()
-    });
+    };
+
+    const qrCodeRef = collection(db, collectionPath);
+    const docRef = await addDoc(qrCodeRef, qrCodeData);
 
     // If it's a food court, update the food court document with the QR code
     if (data.type === 'foodCourt') {
@@ -90,6 +98,7 @@ export async function getQRCodes(entityId: string, type: 'restaurant' | 'foodCou
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
+      type: doc.data().type || 'restaurant',
       createdAt: doc.data().createdAt?.toDate() || new Date()
     })) as QRCodeData[];
   } catch (error) {

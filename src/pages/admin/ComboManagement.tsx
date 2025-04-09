@@ -5,7 +5,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRestaurantContext } from '../../context/RestaurantContext';
 import useOrderNotification from '../../hooks/useOrderNotification';
-import { deleteMenuItem } from '../../services/menuService';
+import { deleteMenuItem, updateMenuItem } from '../../services/menuService';
 
 export default function ComboManagement() {
   const navigate = useNavigate();
@@ -21,6 +21,30 @@ export default function ComboManagement() {
   const filteredCombos = combos.filter(combo =>
     combo.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleStatusToggle = async (itemId: string, currentStatus: string) => {
+    try {
+      setUpdatingStatus(itemId);
+      if (!restaurant?.id) {
+        throw new Error('Restaurant ID is required');
+      }
+
+      const combo = menu.find(item => item.id === itemId);
+      if (!combo) {
+        throw new Error('Combo not found');
+      }
+
+      const newStatus = currentStatus === 'available' ? 'out_of_stock' : 'available';
+      await updateMenuItem(itemId, restaurant.id, {
+        status: newStatus,
+        image: combo.image
+      });
+    } catch (err) {
+      console.error('Error updating availability:', err);
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
 
   const handleDelete = async (comboId: string) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce combo ?')) {
@@ -145,10 +169,8 @@ export default function ComboManagement() {
                     <input
                       type="checkbox"
                       className="sr-only peer"
-                      checked={combo.status === 'available'}
-                      onChange={() => {
-                        // Handle status change if needed
-                      }}
+                      checked={combo.status === 'available'} 
+                      onChange={() => handleStatusToggle(combo.id, combo.status || 'available')}
                       disabled={updatingStatus === combo.id}
                     />
                     <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 ${updatingStatus === combo.id ? 'opacity-50' : ''}`}></div>

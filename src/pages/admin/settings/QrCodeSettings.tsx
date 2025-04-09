@@ -31,7 +31,7 @@ export default function QrCodeSettings() {
   const loadQRCodes = async () => {
     try {
       setLoading(true);
-      const codes = await getQRCodes(restaurant!.id);
+      const codes = await getQRCodes(restaurant!.id, 'restaurant');
       setQRCodes(codes);
     } catch (err) {
       console.error('Error loading QR codes:', err);
@@ -57,9 +57,10 @@ export default function QrCodeSettings() {
       setGenerating(true);
       setActionError(null);
 
-      const qrCodeId = await generateQRCode(restaurant.id, {
+      await generateQRCode(restaurant.id, {
         label: formData.label,
-        tableNumber: formData.tableNumber || undefined
+        tableNumber: formData.tableNumber || undefined,
+        type: 'restaurant' // Force restaurant type for restaurant admin
       });
 
       await loadQRCodes();
@@ -103,7 +104,8 @@ export default function QrCodeSettings() {
 
     try {
       setActionError(null);
-      await deleteQRCode(restaurant.id, qrCodeId);
+      await deleteQRCode(restaurant.id, qrCodeId, 'restaurant');
+      await loadQRCodes(); // Reload the list after deletion
     } catch (error) {
       console.error('Error deleting QR code:', error);
       setActionError('Erreur lors de la suppression du QR code');
