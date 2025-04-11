@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(functions.config().stripe.secret_key, {
@@ -184,6 +184,7 @@ export const createStripeConnectAccount = functions.https.onCall(async (data, co
 export const handleStripeWebhook = functions.https.onRequest(async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = functions.config().stripe.webhook_secret;
+  let event: Stripe.Event;
 
   if (!sig || !endpointSecret) {
     console.error('Missing stripe signature or endpoint secret');
@@ -192,78 +193,79 @@ export const handleStripeWebhook = functions.https.onRequest(async (req, res) =>
   }
 
   try {
-    const event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
-
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const { paymentSessionId } = session.metadata!;
-
-      // Ensure idempotency - check if payment was already processed
-      const paymentSessionRef = db.collection('paymentSessions').doc(paymentSessionId);
-      const paymentSessionSnap = await paymentSessionRef.get();
-      const paymentSession = paymentSessionSnap.data() as PaymentSession;
-
-      if (!paymentSessionSnap.exists) {
-        throw new Error('Payment session not found');
-      }
-
-      if (paymentSession.status === 'completed') {
-        console.log('Payment already processed, skipping');
-        res.json({ received: true });
-        return;
-      }
-
-      // Start a transaction to ensure atomic updates
-      await db.runTransaction(async (transaction) => {
-        // Update payment session status first
-        transaction.update(paymentSessionRef, {
-          status: 'completed',
-          updatedAt: admin.firestore.Timestamp.now(),
-        });
-
-        // Create orders for each restaurant
-        const orderRefs = paymentSession.restaurants.map((restaurant) => {
-          const orderRef = db.collection('orders').doc();
-          const order = {
-            id: orderRef.id,
-            userId: paymentSession.userId,
-            restaurantId: restaurant.restaurantId,
-            items: restaurant.items,
-            amount: restaurant.amount,
-            status: 'pending',
-            paymentSessionId,
-            createdAt: admin.firestore.Timestamp.now(),
-            updatedAt: admin.firestore.Timestamp.now(),
-          };
-          transaction.set(orderRef, order);
-          return orderRef;
-        });
-
-        return orderRefs;
-      });
-
-      // After transaction succeeds, process Stripe transfers
-      await Promise.all(
-        paymentSession.restaurants.map(async (restaurant) => {
-          try {
-            await stripe.transfers.create({
-              amount: Math.round(restaurant.amount * 100),
-              currency: 'eur',
-              destination: restaurant.stripeAccountId,
-              transfer_group: paymentSessionId,
-            });
-          } catch (error) {
-            console.error(`Failed to transfer to restaurant ${restaurant.restaurantId}:`, error);
-            // Consider adding a retry mechanism or notification system here
-          }
-        }),
-      );
-    }
-
-    res.json({ received: true });
-  } catch (error: any) {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
+  } catch (error) {
     console.error('Webhook error:', error);
     // Don't expose internal error details in production
     res.status(400).send('Webhook Error');
+    return;
   }
+
+  if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const { paymentSessionId } = session.metadata!;
+
+    // Ensure idempotency - check if payment was already processed
+    const paymentSessionRef = db.collection('paymentSessions').doc(paymentSessionId);
+    const paymentSessionSnap = await paymentSessionRef.get();
+    const paymentSession = paymentSessionSnap.data() as PaymentSession;
+
+    if (!paymentSessionSnap.exists) {
+      throw new Error('Payment session not found');
+    }
+
+    if (paymentSession.status === 'completed') {
+      console.log('Payment already processed, skipping');
+      res.json({ received: true });
+      return;
+    }
+
+    // Start a transaction to ensure atomic updates
+    await db.runTransaction(async (transaction) => {
+      // Update payment session status first
+      transaction.update(paymentSessionRef, {
+        status: 'completed',
+        updatedAt: admin.firestore.Timestamp.now(),
+      });
+
+      // Create orders for each restaurant
+      const orderRefs = paymentSession.restaurants.map((restaurant) => {
+        const orderRef = db.collection('orders').doc();
+        const order = {
+          id: orderRef.id,
+          userId: paymentSession.userId,
+          restaurantId: restaurant.restaurantId,
+          items: restaurant.items,
+          amount: restaurant.amount,
+          status: 'pending',
+          paymentSessionId,
+          createdAt: admin.firestore.Timestamp.now(),
+          updatedAt: admin.firestore.Timestamp.now(),
+        };
+        transaction.set(orderRef, order);
+        return orderRef;
+      });
+
+      return orderRefs;
+    });
+
+    // After transaction succeeds, process Stripe transfers
+    await Promise.all(
+      paymentSession.restaurants.map(async (restaurant) => {
+        try {
+          await stripe.transfers.create({
+            amount: Math.round(restaurant.amount * 100),
+            currency: 'eur',
+            destination: restaurant.stripeAccountId,
+            transfer_group: paymentSessionId,
+          });
+        } catch (error) {
+          console.error(`Failed to transfer to restaurant ${restaurant.restaurantId}:`, error);
+          // Consider adding a retry mechanism or notification system here
+        }
+      }),
+    );
+  }
+
+  res.json({ received: true });
 });

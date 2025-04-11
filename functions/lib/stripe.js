@@ -28,8 +28,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleStripeWebhook = exports.createStripeConnectAccount = exports.createCheckoutSession = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
+const functions = __importStar(require("firebase-functions"));
 const stripe_1 = __importDefault(require("stripe"));
 const stripe = new stripe_1.default(functions.config().stripe.secret_key, {
     apiVersion: '2025-01-27.acacia',
@@ -167,76 +167,102 @@ exports.createStripeConnectAccount = functions.https.onCall(async (data, context
 exports.handleStripeWebhook = functions.https.onRequest(async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const endpointSecret = functions.config().stripe.webhook_secret;
+    let event;
     if (!sig || !endpointSecret) {
         console.error('Missing stripe signature or endpoint secret');
         res.status(400).send('Missing stripe signature or endpoint secret');
         return;
     }
     try {
-        const event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
-        if (event.type === 'checkout.session.completed') {
-            const session = event.data.object;
-            const { paymentSessionId } = session.metadata;
-            // Ensure idempotency - check if payment was already processed
-            const paymentSessionRef = db.collection('paymentSessions').doc(paymentSessionId);
-            const paymentSessionSnap = await paymentSessionRef.get();
-            const paymentSession = paymentSessionSnap.data();
-            if (!paymentSessionSnap.exists) {
-                throw new Error('Payment session not found');
-            }
-            if (paymentSession.status === 'completed') {
-                console.log('Payment already processed, skipping');
-                res.json({ received: true });
-                return;
-            }
-            // Start a transaction to ensure atomic updates
-            await db.runTransaction(async (transaction) => {
-                // Update payment session status first
-                transaction.update(paymentSessionRef, {
-                    status: 'completed',
-                    updatedAt: admin.firestore.Timestamp.now(),
-                });
-                // Create orders for each restaurant
-                const orderRefs = paymentSession.restaurants.map((restaurant) => {
-                    const orderRef = db.collection('orders').doc();
-                    const order = {
-                        id: orderRef.id,
-                        userId: paymentSession.userId,
-                        restaurantId: restaurant.restaurantId,
-                        items: restaurant.items,
-                        amount: restaurant.amount,
-                        status: 'pending',
-                        paymentSessionId,
-                        createdAt: admin.firestore.Timestamp.now(),
-                        updatedAt: admin.firestore.Timestamp.now(),
-                    };
-                    transaction.set(orderRef, order);
-                    return orderRef;
-                });
-                return orderRefs;
-            });
-            // After transaction succeeds, process Stripe transfers
-            await Promise.all(paymentSession.restaurants.map(async (restaurant) => {
-                try {
-                    await stripe.transfers.create({
-                        amount: Math.round(restaurant.amount * 100),
-                        currency: 'eur',
-                        destination: restaurant.stripeAccountId,
-                        transfer_group: paymentSessionId,
-                    });
-                }
-                catch (error) {
-                    console.error(`Failed to transfer to restaurant ${restaurant.restaurantId}:`, error);
-                    // Consider adding a retry mechanism or notification system here
-                }
-            }));
-        }
-        res.json({ received: true });
+        //const body = await buffer(req);
+        event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
     }
     catch (error) {
         console.error('Webhook error:', error);
         // Don't expose internal error details in production
         res.status(400).send('Webhook Error');
+        return;
     }
+    if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
+        const session = event.data.object;
+        //const { paymentSessionId } = session.metadata!;
+        console.log('session', session);
+        // Ensure idempotency - check if payment was already processed
+        /* const paymentSessionRef = db.collection('paymentSessions').doc(paymentSessionId);
+        const paymentSessionSnap = await paymentSessionRef.get();
+        const paymentSession = paymentSessionSnap.data() as PaymentSession;
+    
+        if (!paymentSessionSnap.exists) {
+          throw new Error('Payment session not found');
+        }
+    
+        if (paymentSession.status === 'completed') {
+          console.log('Payment already processed, skipping');
+          res.json({ received: true });
+          return;
+        }
+    
+        // Start a transaction to ensure atomic updates
+        await db.runTransaction(async (transaction) => {
+          // Update payment session status first
+          transaction.update(paymentSessionRef, {
+            status: 'completed',
+            updatedAt: admin.firestore.Timestamp.now(),
+          });
+    
+          // Create orders for each restaurant
+          const orderRefs = paymentSession.restaurants.map((restaurant) => {
+            const orderRef = db.collection('orders').doc();
+            const order = {
+              id: orderRef.id,
+              userId: paymentSession.userId,
+              restaurantId: restaurant.restaurantId,
+              items: restaurant.items,
+              amount: restaurant.amount,
+              status: 'pending',
+              paymentSessionId,
+              createdAt: admin.firestore.Timestamp.now(),
+              updatedAt: admin.firestore.Timestamp.now(),
+            };
+            transaction.set(orderRef, order);
+            return orderRef;
+          });
+    
+          return orderRefs;
+        });
+    
+        // After transaction succeeds, process Stripe transfers
+        await Promise.all(
+          paymentSession.restaurants.map(async (restaurant) => {
+            try {
+              await stripe.transfers.create({
+                amount: Math.round(restaurant.amount * 100),
+                currency: 'eur',
+                destination: restaurant.stripeAccountId,
+                transfer_group: paymentSessionId,
+              });
+            } catch (error) {
+              console.error(`Failed to transfer to restaurant ${restaurant.restaurantId}:`, error);
+              // Consider adding a retry mechanism or notification system here
+            }
+          }),
+        ); */
+    }
+    res.json({ received: true });
 });
+/* const buffer = (req: any) => {
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    req.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+
+    req.on('error', reject);
+  });
+}; */ 
 //# sourceMappingURL=stripe.js.map
