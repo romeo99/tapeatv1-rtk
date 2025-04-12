@@ -113,5 +113,6 @@ export interface Restaurant {
       open: string;
       close: string;
     };
-  }
+  };
+  autoPrint?: boolean;
 }

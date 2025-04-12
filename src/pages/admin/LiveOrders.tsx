@@ -586,7 +586,7 @@ export default function LiveOrders() {
                 <div className="flex flex-col items-end min-w-[120px] text-right">
                   <span className="text-lg font-semibold text-emerald-600 mb-1">{order.total.toFixed(2)} €</span>
                   <span className="text-sm text-gray-500">
-                    {order.status === 'scheduled' && order.scheduledTime?.date && order.scheduledTime?.time ? 
+                    {order.status === 'scheduled' && order.scheduledTime?.date && order.scheduledTime?.time ?
                       `${order.scheduledTime.date.split('-').reverse().join('-')} à ${order.scheduledTime.time}` :
                       new Date(order.createdAt).toLocaleTimeString('fr-FR', {
                         hour: '2-digit',
