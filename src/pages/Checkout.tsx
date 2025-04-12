@@ -13,9 +13,8 @@ import { useRestaurantContext } from '../context/RestaurantContext';
 import { createFoodCourtOrder, createOrder } from '../services/orderService';
 import { Restaurant } from '../types/firebase';
 import { getSuggestionGroups } from '../utils/suggestionEngine';
-
 // Initialize Stripe
-const stripePromise = loadStripe('pk_test_51PH7PV1LCdahk0ySP7Kcm127sOdgOuOKSBNxVuIegQhWgi0AvXL4NupqnQY0wDQPEo38AJi3wV9mrFdAzSLvFGXG00PttU7DHT');
+const stripePromise = loadStripe(`${import.meta.env.VITE_STRIPE_PUBLISH_KEY}`);
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -24,7 +23,6 @@ export default function Checkout() {
   const { themeColor, restaurant } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
 
   const [selectedMethod, setSelectedMethod] = useState<string>('card');
   const [showUpsell, setShowUpsell] = useState(true);
@@ -35,6 +33,9 @@ export default function Checkout() {
   const [restaurantData, setRestaurantData] = useState<Restaurant | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const today = new Date().toISOString().split('T')[0];
+
+  const query = new URLSearchParams(window.location.search);
+  const sessionId = query.get('session_id');
 
   // Redirect if no restaurant ID
   useEffect(() => {
@@ -184,10 +185,10 @@ export default function Checkout() {
     return orderData;
   };
 
-  const processPayment = async () => {
+  const processPayment = async (): Promise<boolean> => {
     try {
       const stripe = await stripePromise;
-      if (!stripe) return;
+      if (!stripe) return false;
 
       const functions = getFunctions();
       const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
@@ -203,14 +204,15 @@ export default function Checkout() {
       const { data } = await createCheckoutSession({
         restaurants,
         fees: applicationFee,
-        successUrl: `${window.location.origin}/order-confirmation`,
-        cancelUrl: `${window.location.origin}/checkout`,
-        method: selectedMethod
+        successUrl: `${window.location.origin}/checkout?restaurantId=${restaurantId}`,
+        cancelUrl: `${window.location.origin}/checkout?restaurantId=${restaurantId}`,
+        method: 'card',
+        userFistname: 'test',
       });
 
-      clearCart();
+      /* clearCart();
       localStorage.removeItem('foodCourtId');
-      localStorage.removeItem('deliveryInfo');
+      localStorage.removeItem('deliveryInfo'); */
 
       // Rediriger vers Stripe Checkout
       const { sessionId } = data as { sessionId: string };
@@ -219,10 +221,13 @@ export default function Checkout() {
       if (result.error) {
         console.error('Stripe checkout error:', result.error);
         setError('Une erreur est survenue lors de la redirection vers la page de paiement.');
+        return false;
       }
+      return true;
     } catch (error) {
       console.error('Payment error:', error);
       setError('Une erreur est survenue lors de la création de la session de paiement.');
+      return false;
     } finally {
       setLoading(false);
     }
@@ -272,15 +277,22 @@ export default function Checkout() {
 
     try {
       const orderData = prepareOrderData(selectedMethod);
+
+      if ((selectedMethod === 'card' && !isRegisterMode) || selectedMethod === 'apple_pay') {
+        const paymentResult = await processPayment();
+        if (!paymentResult) {
+          throw new Error('Erreur lors du traitement du paiement.');
+        }
+      }
+
+      // Créer la commande dans Firestore
       let orderId: string | string[] | void = isFoodCourtOrder ? await createFoodCourtOrder(foodCourtId!, orderData) : await createOrder(restaurantData?.id!, orderData);
 
       if (!orderId) {
         throw new Error('Erreur lors de la création de la commande');
       }
 
-      if ((selectedMethod === 'card' && !isRegisterMode) || selectedMethod === 'apple_pay') {
-        await processPayment();
-      } else {
+      if (!((selectedMethod === 'card' && !isRegisterMode) || selectedMethod === 'apple_pay')) {
         clearCart();
         localStorage.removeItem('foodCourtId');
         localStorage.removeItem('deliveryInfo');
@@ -304,6 +316,60 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (sessionId) {
+      setLoading(true);
+      const functions = getFunctions();
+      const retrieveCheckoutSession = httpsCallable(functions, 'retrieveCheckoutSession');
+
+      retrieveCheckoutSession({ sessionId })
+        .then(async (result: any) => {
+          const session = result.data;
+          if (session.payment_status === 'paid') {
+            try {
+              const orderData = prepareOrderData('card');
+
+              // Créer la commande dans Firestore
+              let orderId: string | string[] | void = isFoodCourtOrder ? await createFoodCourtOrder(foodCourtId!, orderData) : await createOrder(restaurantId!, orderData);
+
+              if (!orderId) {
+                throw new Error('Erreur lors de la création de la commande');
+              }
+
+              if (!isRegisterMode) {
+                clearCart();
+                localStorage.removeItem('foodCourtId');
+                localStorage.removeItem('deliveryInfo');
+                if (isFoodCourtOrder && foodCourtId) {
+                  navigate(`/order-confirmation${isRegisterMode ? '?mode=register' : ''}`, {
+                    state: { foodCourtId },
+                    replace: true
+                  });
+                } else {
+                  navigate(`/order-confirmation${isRegisterMode ? '?mode=register' : ''}`, {
+                    state: { orderId, foodCourtId },
+                    replace: true
+                  });
+                }
+                setLoading(false);
+              }
+              setLoading(false);
+            } catch (error) {
+              console.error('Order error:', error);
+              setError('Une erreur est survenue lors de la commande.');
+              setLoading(false);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('Error retrieving checkout session:', error);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [sessionId]);
 
   const handleUpsellComplete = () => {
     setShowUpsell(false);

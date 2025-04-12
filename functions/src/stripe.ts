@@ -38,9 +38,9 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   } */
 
-  const { restaurants, successUrl, cancelUrl, fees, method } = data;
+  const { restaurants, successUrl, cancelUrl, fees, method, userFistname } = data;
   //const userId = context.auth.uid;
-  const userId = '123'; // For testing purposes
+  const userId = userFistname; // For testing purposes
 
   try {
     // Validate all restaurants first
@@ -80,7 +80,7 @@ export const createCheckoutSession = functions.https.onCall(async (data, context
       payment_method_types: [method],
       allow_promotion_codes: true,
       mode: 'payment',
-      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${successUrl}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       payment_intent_data: {
         transfer_group: paymentSessionRef.id,
@@ -268,4 +268,41 @@ export const handleStripeWebhook = functions.https.onRequest(async (req, res) =>
   }
 
   res.json({ received: true });
+});
+
+export const retrieveCheckoutSession = functions.https.onCall(async (data, context) => {
+  // Vérifier si l'utilisateur est authentifié
+  /* if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'Vous devez être authentifié pour effectuer cette action.'
+    );
+  } */
+
+  const { sessionId } = data;
+
+  if (!sessionId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'L\'ID de la session est requis.'
+    );
+  }
+
+  try {
+    // Récupérer les détails de la session Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    return {
+      id: session.id,
+      payment_status: session.payment_status,
+      amount_total: session.amount_total,
+      currency: session.currency,
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la session Stripe:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      'Une erreur est survenue lors de la récupération de la session Stripe.'
+    );
+  }
 });
