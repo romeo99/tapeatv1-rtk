@@ -18,6 +18,7 @@ export interface Order {
     name?: string;
   };
   message?: string;
+  customerName?: string;
   createdAt: Date;
   updatedAt: Date;
   paymentStatus: string;

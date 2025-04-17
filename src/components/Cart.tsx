@@ -10,10 +10,10 @@ function Cart() {
   const cartRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { themeColor } = useRestaurantContext();
-  const { items, isCartOpen, toggleCart, updateQuantity, removeItem, scheduledTime, isFoodCourtOrder, foodCourtId, total, subtotal, serviceFees } = useCart();
+  const { items, isCartOpen, toggleCart, updateQuantity, removeItem, scheduledTime, isFoodCourtOrder, foodCourtId, total, subtotal, serviceFees, fixAnonymousUser, anonymousUser } = useCart();
   const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
   const { user } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [anonymousUserError, setAnonymousUserError] = useState('');
 
   useEffect(() => {
     const loadRestaurantNames = async () => {
@@ -76,10 +76,11 @@ function Cart() {
 
   const handleCheckout = () => {
     const restaurantId = items[0]?.restaurantId;
-    /* if (!user) {
-      setShowAuthModal(true);
+    if (!user && !anonymousUser.trim()) {
+      setAnonymousUserError('Vous devez saisir votre prénom pour continuer.');
       return;
-    } */
+    }
+
     toggleCart();
     const isRegisterMode = new URLSearchParams(window.location.search).get('mode') === 'register';
     navigate(`/checkout?restaurantId=${restaurantId}${isRegisterMode ? '&mode=register' : ''}${isFoodCourtOrder ? `&foodCourtId=${foodCourtId}` : ''}`);
@@ -147,6 +148,17 @@ function Cart() {
               <div className="text-center text-gray-500 mt-8">Votre panier est vide</div>
             ) : (
               <div className="space-y-6">
+                {!user && <div className=" w-full max-w-sm rounded-lg bg-white">
+                  <h2 className="font-medium text-lg mb-2">Saisir votre prénom</h2>
+                  <input
+                    type="text"
+                    className="w-full rounded-md border border-gray-300 p-2 mb-2 focus:outline-none focus:ring focus:ring-primary"
+                    placeholder="Prénom sur la commande"
+                    onChange={(e) => { fixAnonymousUser(e.target.value); }}
+                    value={anonymousUser}
+                  />
+                  {anonymousUserError && <p className="text-red-500 text-sm mb-3">{anonymousUserError}</p>}
+                </div>}
                 {Object.entries(groupedItems).map(([restaurantId, { name, items: restaurantItems, subtotal }]) => (
                   <div key={restaurantId} className="space-y-4">
                     {/* Restaurant header */}
@@ -275,29 +287,41 @@ function Cart() {
           )}
         </div>
       </div>
-      {showAuthModal && (
+
+      {/* {showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="mx-4 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-xl font-semibold">Authentication Required</h2>
-            <p className="mb-6 text-gray-600">Please sign in or create an account to proceed with checkout.</p>
+            <h2 className="mb-4 text-xl font-semibold">Saisir votre prénom</h2>
+            <p className="mb-3 text-gray-600">Veuillez saisir un prénom à mettre sur la commande</p>
+            <input
+              type="text"
+              className="w-full rounded-md border border-gray-300 p-2 mb-5 focus:outline-none focus:ring focus:ring-primary"
+              placeholder="Prénom sur la commande"
+              onChange={(e) => { setAnonymousUser(e.target.value); }}
+              value={anonymouUser}
+            />
             <div className="flex justify-end space-x-4">
               <button onClick={() => setShowAuthModal(false)} className="rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100">
-                Cancel
+                Annuler
               </button>
               <button
+                disabled={!anonymouUser.trim()}
                 onClick={() => {
-                  setShowAuthModal(false);
-                  toggleCart();
-                  navigate('/signin?redirect=checkout');
+                  if (!anonymouUser.trim()) {
+                    return;
+                  } else {
+                    setShowAuthModal(false);
+                    handleCheckout();
+                  }
                 }}
                 className="rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/90"
                 style={{ backgroundColor: themeColor }}>
-                Sign In
+                Continuer
               </button>
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 }

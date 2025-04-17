@@ -66,6 +66,7 @@ export async function createOrder(restaurantId: string, orderData: {
   total: number;
   paymentMethod: string;
   message?: string;
+  customerName?: string;
   scheduledTime?: { date: string; time: string } | null;
   delivery?: {
     name: string;
@@ -178,6 +179,7 @@ export async function createOrder(restaurantId: string, orderData: {
         }
       }),
       message: orderData.message,
+      customerName: orderData.customerName,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -338,6 +340,7 @@ export async function createFoodCourtOrder(foodCourtId: string, orderData: {
   subtotal: number;
   total: number;
   paymentMethod: string;
+  customerName?: string;
   scheduledTime?: { date: string; time: string } | null;
   delivery?: {
     name: string;
@@ -373,7 +376,8 @@ export async function createFoodCourtOrder(foodCourtId: string, orderData: {
       total: orderData.total,
       paymentMethod: orderData.paymentMethod,
       scheduledTime: orderData.scheduledTime,
-      delivery: orderData.delivery
+      delivery: orderData.delivery,
+      customerName: orderData.customerName,
     });
   }));
 

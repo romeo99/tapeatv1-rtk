@@ -8,6 +8,7 @@ import UpsellModal from '../components/UpsellModal';
 import { db } from '../config/firebase';
 //import { useAuth } from '../context/AuthContext';
 import OrderSummary from '../components/OrderSummary';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
 import { createFoodCourtOrder, createOrder } from '../services/orderService';
@@ -18,8 +19,8 @@ const stripePromise = loadStripe(`${import.meta.env.VITE_STRIPE_PUBLISH_KEY}`);
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, applicationFee, serviceFees, subtotal, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId, setScheduledTime } = useCart();
-  //const { user } = useAuth();
+  const { items, applicationFee, serviceFees, subtotal, total, clearCart, scheduledTime, isFoodCourtOrder, foodCourtId, setScheduledTime, anonymousUser } = useCart();
+  const { user } = useAuth();
   const { themeColor, restaurant } = useRestaurantContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +151,7 @@ export default function Checkout() {
         type: orderType.type,
         subtotal: parseFloat(subtotal.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
+        customerName: user ? user.displayName : anonymousUser,
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
         scheduledTime,
@@ -177,6 +179,7 @@ export default function Checkout() {
         total: parseFloat(total.toFixed(2)),
         paymentMethod: selectedMethod,
         paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
+        customerName: user ? user.displayName : anonymousUser,
         message: message,
         scheduledTime,
         ...(deliveryInfo && { delivery: deliveryInfo })

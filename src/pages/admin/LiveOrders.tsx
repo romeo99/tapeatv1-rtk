@@ -580,6 +580,9 @@ export default function LiveOrders() {
                       <div className="flex items-center gap-2">
                         {orderTypeIcons[order.type as keyof typeof orderTypeIcons]?.label}
                       </div>
+                      {order.customerName && <div className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                        Client: {order.customerName}
+                      </div>}
                     </div>
                   </div>
                 </div>
