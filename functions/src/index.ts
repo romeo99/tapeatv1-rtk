@@ -103,3 +103,4 @@ export const verifyCode = functions.https.onCall(async (data, context) => {
 });
 
 export * from './stripe';
+export * from './mailing';

@@ -11,7 +11,7 @@ import OrderSummary from '../components/OrderSummary';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRestaurantContext } from '../context/RestaurantContext';
-import { createFoodCourtOrder, createOrder } from '../services/orderService';
+import { createFoodCourtOrder, createOrder, generateOrderNumber } from '../services/orderService';
 import { Restaurant } from '../types/firebase';
 import { getSuggestionGroups } from '../utils/suggestionEngine';
 // Initialize Stripe
@@ -96,13 +96,15 @@ export default function Checkout() {
     }, {} as Record<string, { items: typeof items; amount: number }>);
   }, [items]);
 
-  const prepareOrderData = (selectedMethod: string) => {
+  const prepareOrderData = async (selectedMethod: string): Promise<any> => {
     let orderData;
     let orderType = JSON.parse(localStorage.getItem('orderType') || '{"type":"takeaway"}');
 
     if (!['dine_in', 'takeaway', 'delivery'].includes(orderType.type)) {
       throw new Error('Type de commande invalide');
     }
+
+    const orderNumber = await generateOrderNumber(restaurantId!, selectedMethod);
 
     // Préparer les données de livraison si nécessaire
     let deliveryInfo = null;
@@ -181,6 +183,7 @@ export default function Checkout() {
         paymentStatus: selectedMethod === 'cash' ? 'pending' : 'paid',
         customerName: user ? user.displayName : anonymousUser,
         message: message,
+        orderNumber: orderNumber,
         scheduledTime,
         ...(deliveryInfo && { delivery: deliveryInfo })
       };
@@ -239,6 +242,10 @@ export default function Checkout() {
   const handlePayment = async () => {
     setLoading(true);
 
+    //Demande de email pour envoie de ticket par mail
+    const functions = getFunctions();
+    const sendEmail = httpsCallable(functions, 'sendOrderConfirmation');
+
     //Controle pour verifier si la valeur de l'heure est bien renseignée et est au minimum 15 minutes après l'heure actuelle
     if (isScheduled) {
       const now = new Date();
@@ -279,7 +286,7 @@ export default function Checkout() {
     }
 
     try {
-      const orderData = prepareOrderData(selectedMethod);
+      const orderData = await prepareOrderData(selectedMethod);
 
       if ((selectedMethod === 'card' && !isRegisterMode) || selectedMethod === 'apple_pay') {
         const paymentResult = await processPayment();
@@ -294,6 +301,12 @@ export default function Checkout() {
       if (!orderId) {
         throw new Error('Erreur lors de la création de la commande');
       }
+
+      await sendEmail({
+        to: 'melesusuaris@gmail.com',
+        subject: 'Merci pour votre commande',
+        order: orderData,
+      });
 
       if (!((selectedMethod === 'card' && !isRegisterMode) || selectedMethod === 'apple_pay')) {
         clearCart();

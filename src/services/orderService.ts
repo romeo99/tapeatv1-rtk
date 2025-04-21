@@ -12,7 +12,7 @@ import {
 import { auth, db } from '../config/firebase';
 import { sendOrderNotification } from './notificationService';
 
-async function generateOrderNumber(restaurantId: string, paymentMethod: string): Promise<string> {
+export async function generateOrderNumber(restaurantId: string, paymentMethod: string): Promise<string> {
   try {
     if (!restaurantId?.trim()) throw new Error('Restaurant ID is required');
     if (!paymentMethod?.trim()) throw new Error('Payment method is required');
@@ -67,6 +67,7 @@ export async function createOrder(restaurantId: string, orderData: {
   paymentMethod: string;
   message?: string;
   customerName?: string;
+  orderNumber?: string;
   scheduledTime?: { date: string; time: string } | null;
   delivery?: {
     name: string;
@@ -152,8 +153,6 @@ export async function createOrder(restaurantId: string, orderData: {
       throw new Error('L\'adresse de livraison est requise');
     }
 
-    console.log("cleanedItems", cleanedItems);
-
     // Prepare order data
     const orderToCreate = {
       restaurantId,
@@ -166,7 +165,7 @@ export async function createOrder(restaurantId: string, orderData: {
       paymentMethod: orderData.paymentMethod,
       subtotal: Math.max(0, Number(orderData.subtotal) || 0),
       total: Math.max(0, Number(orderData.total) || 0),
-      orderNumber,
+      orderNumber: orderData.orderNumber ?? orderNumber,
       ...(tableNumber && { table: tableNumber }),
       ...(orderData.scheduledTime && {
         scheduledTime: orderData.scheduledTime

@@ -116,4 +116,5 @@ exports.verifyCode = functions.https.onCall(async (data, context) => {
     }
 });
 __exportStar(require("./stripe"), exports);
+__exportStar(require("./mailing"), exports);
 //# sourceMappingURL=index.js.map
