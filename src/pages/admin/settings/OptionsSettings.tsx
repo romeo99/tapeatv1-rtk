@@ -96,9 +96,6 @@ export default function OptionsSettings() {
     );
   }
 
-  console.log(formData);
-
-
   return (
     <AdminLayout>
       <div className="bg-white shadow-sm">
